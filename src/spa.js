@@ -42,7 +42,7 @@
         .spa-scroll {overflow: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
         .spa-scroll-x {overflow-x: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
         .spa-scroll-y {overflow-y: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
-        .spa-cover {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; overflow: hidden; z-index: 5000; }\
+        .spa-cover {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; z-index: 5000; }\
         .spa-loader {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; overflow: hidden; z-index: 5001; }',
       loaderBody = '<div class="spa-loader-animate"><span></span><span></span><span></span></div>',
       loaderStyle = '.spa-loader .spa-loader-animate {position: absolute; left: 50%; top: 50%; margin: -12px 0 0 -65px; }\
@@ -335,7 +335,6 @@
   
   //默认转场动画
   transitPageAnimates.defaultInOut = function($toPage, $fromPage, callback) {
-    //$fromPage.hide()
     togglePagezIndex($fromPage, $toPage)
     callback()
   }
@@ -366,7 +365,6 @@
           
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css({opacity: 0}).transition({opacity: 1}, function() {
-        //$fromPage.hide()
         callback()
       })
     },
@@ -375,7 +373,6 @@
           $fromPageBody = $('.spa-page-body', $fromPage)
 
       $fromPageBody.transition({opacity: 0}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({opacity: 1})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -387,7 +384,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css({x: '100%', opacity: 0}).transition({x: '0', opacity: 1}, function() {
-        //$fromPage.hide()
         callback()
       })
     },
@@ -396,7 +392,6 @@
           $fromPageBody = $('.spa-page-body', $fromPage)
 
       $fromPageBody.transition({x: '100%', opacity: 0}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({x: 0, opacity: 1})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -408,7 +403,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css({x: '-100%', opacity: 0}).transition({x: '0', opacity: 1}, function() {
-        //$fromPage.hide()
         callback()
       })
     },
@@ -417,7 +411,6 @@
           $fromPageBody = $('.spa-page-body', $fromPage)
 
       $fromPageBody.transition({x: '-100%', opacity: 0}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({x: 0, opacity: 1})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -429,7 +422,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css({y: '100%', opacity: 0}).transition({y: '0', opacity: 1}, function() {
-        //$fromPage.hide()
         callback()
       })
     },
@@ -438,7 +430,6 @@
           $fromPageBody = $('.spa-page-body', $fromPage)
 
       $fromPageBody.transition({y: '100%', opacity: 0}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({y: 0, opacity: 1})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -450,7 +441,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css({y: '-100%', opacity: 0}).transition({y: '0', opacity: 1}, function() {
-        //$fromPage.hide()
         callback()
       })
     },
@@ -459,7 +449,6 @@
           $fromPageBody = $('.spa-page-body', $fromPage)
 
       $fromPageBody.transition({y: '-100%', opacity: 0}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({y: 0, opacity: 1})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -471,7 +460,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css({x: '100%'}).transition({x: '0'}, function() {
-        //$fromPage.hide()
         callback()
       })
     },
@@ -480,7 +468,6 @@
           $fromPageBody = $('.spa-page-body', $fromPage)
 
       $fromPageBody.transition({x: '100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({x: 0})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -492,7 +479,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css({x: '-100%'}).transition({x: '0'}, function() {
-        //$fromPage.hide()
         callback()
       })
     },
@@ -501,7 +487,6 @@
           $fromPageBody = $('.spa-page-body', $fromPage)
 
       $fromPageBody.transition({x: '-100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({x: 0})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -513,7 +498,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css({y: '100%'}).transition({y: '0'}, function() {
-        //$fromPage.hide()
         callback()
       })
     },
@@ -522,7 +506,6 @@
           $fromPageBody = $('.spa-page-body', $fromPage)
 
       $fromPageBody.transition({y: '100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({y: 0})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -534,7 +517,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css({y: '-100%'}).transition({y: '0'}, function() {
-        //$fromPage.hide()
         callback()
       })
     },
@@ -543,7 +525,6 @@
           $fromPageBody = $('.spa-page-body', $fromPage)
 
       $fromPageBody.transition({y: '-100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({y: 0})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -559,7 +540,6 @@
         ++isFinish == 2 && callback()
       })
       $fromPageBody.transition({x: '-100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({x: 0})
         ++isFinish == 2 && callback()
       })
@@ -571,7 +551,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({x: '100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({x: 0})
         ++isFinish == 2 && callback()
       })
@@ -586,7 +565,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({x: '100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({x: 0})
         ++isFinish == 2 && callback()
       })
@@ -601,7 +579,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({x: '-100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({x: 0})
         ++isFinish == 2 && callback()
       })
@@ -616,7 +593,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '-100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({y: 0})
         ++isFinish == 2 && callback()
       })
@@ -631,7 +607,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({y: 0})
         ++isFinish == 2 && callback()
       })
@@ -646,7 +621,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({y: 0})
         ++isFinish == 2 && callback()
       })
@@ -661,7 +635,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '-100%'}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({y: 0})
         ++isFinish == 2 && callback()
       })
@@ -675,7 +648,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css({scale: 0}).transition({scale: 1}, function() {
-        //$fromPage.hide()
         callback()
       })
     },
@@ -684,7 +656,6 @@
           $fromPageBody = $('.spa-page-body', $fromPage)
 
       $fromPageBody.transition({scale: 0}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({scale: 1})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -708,7 +679,6 @@
           prevPageBodyWidth = $fromPageBody.width()
 
       $fromPageBody.transition({x: prevPageBodyWidth}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({width: 'auto', left: 0, x: 0})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -732,7 +702,6 @@
           prevPageBodyWidth = $fromPageBody.width()
 
       $fromPageBody.transition({x: 0 - prevPageBodyWidth}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({width: 'auto', right: 0, x: 0})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -756,7 +725,6 @@
           prevPageBodyHeight = $fromPageBody.height()
 
       $fromPageBody.transition({y: prevPageBodyHeight}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({height: 'auto', top: 0, y: 0})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -780,7 +748,6 @@
           prevPageBodyHeight = $fromPageBody.height()
 
       $fromPageBody.transition({y: 0 - prevPageBodyHeight}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({height: 'auto', bottom: 0, y: 0})
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -807,7 +774,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition({x: 0}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({width: 'auto', left: 0})
         callback()
       })
@@ -833,7 +799,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition({x: 0}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({width: 'auto', right: 0})
         callback()
       })
@@ -859,7 +824,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition({y: 0}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({height: 'auto', top: 0})
         callback()
       })
@@ -885,7 +849,6 @@
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition({y: 0}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({height: 'auto', bottom: 0})
         callback()
       })
@@ -917,7 +880,6 @@
         ++isFinish == 2 && callback()
       })
       $fromPageBody.transition({x: prevPageBodyWidth}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({width: 'auto', left: 0, x: 0})
         ++isFinish == 2 && callback()
       })
@@ -949,7 +911,6 @@
         ++isFinish == 2 && callback()
       })
       $fromPageBody.transition({x: 0 - prevPageBodyWidth}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({width: 'auto', right: 0, x: 0})
         ++isFinish == 2 && callback()
       })
@@ -981,7 +942,6 @@
         ++isFinish == 2 && callback()
       })
       $fromPageBody.transition({y: prevPageBodyHeight}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({height: 'auto', top: 0, y: 0})
         ++isFinish == 2 && callback()
       })
@@ -1013,7 +973,6 @@
         ++isFinish == 2 && callback()
       })
       $fromPageBody.transition({y: 0 - prevPageBodyHeight}, function() {
-        //$fromPage.hide()
         $fromPageBody.css({height: 'auto', bottom: 0, y: 0})
         ++isFinish == 2 && callback()
       })
@@ -1034,7 +993,6 @@
         $fromPageBody = $('.spa-page-body', $fromPage),
         animate = transitPageAnimatesName[animate] ? animate : 'defaultInOut'
     
-    //$toPage.show()
     transitPageAnimates[animate].apply($toPage, [$toPage, $fromPage, callback])
   }
   
@@ -1425,6 +1383,13 @@
     if(!$cover) {
       $cover = $('<div class="spa-cover"></div>').appendTo($('body'))
       $cover.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)
+      
+      /*
+       * bugfix:z-index ignored with webkit overflow set to touch(-webkit-overflow-scrolling: touch)
+       * 给遮罩层节点设置-webkit-overflow-scrolling: touch来抢占scrolling的优先级，等关闭遮罩层后，scrolling的优先级自动给到当前视图
+       */
+      $cover.trigger('scroll.spa')
+      
       $win.data('cover.spa', $cover)
     }
     $cover.show()
