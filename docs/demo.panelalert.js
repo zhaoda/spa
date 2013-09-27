@@ -26,11 +26,11 @@ define({
       $view.trigger('closepanel.spa')
     })
 
-    $view.on('click', '.panel', function(event) {
+    $view.on('click touchstart', '.panel', function(event) {
       event.stopPropagation()
     })
 
-    $view.on('click', '.spa-page-body', function(event) {
+    $view.on('click touchstart', '.spa-page-body', function(event) {
       $view.trigger('closepanel.spa')
     })
     
