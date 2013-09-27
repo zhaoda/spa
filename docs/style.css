@@ -1,0 +1,59 @@
+.navbar-header {
+  position: absolute;
+  left: 50%;
+}
+.navbar-header .navbar-brand {
+  margin-left: -50%;
+}
+
+.page-container-navbar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 51px;
+  bottom: 0;
+}
+
+.spa-page-body {
+  background: #fff;
+}
+
+#spa-panel-demoPanelSidemenu .container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  padding: 0;
+}
+#spa-panel-demoPanelSidemenu .panel {
+  max-width: 200px;
+  margin-bottom: 0;
+  border-radius: 0;
+}
+
+#spa-panel-demoPanelAlert .spa-page-body {
+  background: none;
+}
+#spa-panel-demoPanelAlert .spa-page-bg {
+  background: #000;
+}
+
+#spa-panel-demoPanelConfirm .spa-page-body {
+  background: none;
+}
+#spa-panel-demoPanelConfirm .spa-page-bg {
+  background: #000;
+}
+#spa-panel-demoPanelConfirm .container {
+  height: 100px;
+}
+#spa-panel-demoPanelConfirm .btn-group-vertical {
+  width: 100%;
+}
+
+
+
+
+
