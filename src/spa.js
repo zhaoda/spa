@@ -40,8 +40,8 @@
         .spa-page-bg {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; }\
         .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; }\
         .spa-scroll {overflow: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
-        .spa-scroll-x {overflow-x: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
-        .spa-scroll-y {overflow-y: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
+        .spa-scroll-x {overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
+        .spa-scroll-y {overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
         .spa-cover {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; z-index: 5000; }\
         .spa-loader {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; overflow: hidden; z-index: 5001; }',
       loaderBody = '<div class="spa-loader-animate"><span></span><span></span><span></span></div>',
