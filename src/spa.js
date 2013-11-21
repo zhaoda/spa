@@ -1,30 +1,9 @@
-/*
- * requestAnimationFrame and cancel polyfill
- */
-;(function() {
-  var lastTime = 0,
-      vendors = ['ms', 'moz', 'webkit', 'o']
-  for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-    window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame']
-    window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame']
-  }
-
-  if (!window.requestAnimationFrame)
-    window.requestAnimationFrame = function(callback, element) {
-      var currTime = new Date().getTime(),
-          timeToCall = Math.max(0, 16 - (currTime - lastTime)),
-          id = window.setTimeout(function() { callback(currTime + timeToCall) }, timeToCall)
-      lastTime = currTime + timeToCall
-      return id
-    };
-
-    if (!window.cancelAnimationFrame)
-      window.cancelAnimationFrame = function(id) {
-        clearTimeout(id)
-      }
-})()
+// SPA
+// ---
 
 ;(function($) {
+  'use strict'
+
   var $win = $(window),
       $doc = $(document),
       $body,
@@ -38,10 +17,10 @@
         .spa-fullscreen {position: absolute; left: 0; top: 0; margin: 0; padding: 0; width: 100%; visibility: hidden; overflow: hidden; z-index: -1; }\
         .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; }\
         .spa-page-bg {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; }\
-        .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; }\
+        .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; -webkit-transform: translateZ(0); -webkit-backface-visibility: hidden; }\
         .spa-scroll {overflow: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
-        .spa-scroll-x {overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
-        .spa-scroll-y {overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
+        .spa-scroll-x {overflow-y: hidden;}\
+        .spa-scroll-y {overflow-x: hidden;}\
         .spa-cover {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; z-index: 5000; }\
         .spa-loader {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; overflow: hidden; z-index: 5001; }',
       loaderBody = '<div class="spa-loader-animate"><span></span><span></span><span></span></div>',
@@ -127,27 +106,27 @@
     var $target = $(event.target),
         direction = (options && options.direction) || ''
     
-    $target.addClass('spa-scroll' + (direction ? '-' + direction : ''))    
+    $target.addClass('spa-scroll' + (direction ? ' spa-scroll-' + direction : ''))    
   })
 
   $doc.on('touchstart', '.spa-scroll, .spa-scroll-x, .spa-scroll-y', function(event) {
     var $target = $(event.currentTarget),
         scrollTop = $target.scrollTop(),
         scrollLeft = $target.scrollLeft(),
-        height = $target.height(),
-        width = $target.width(),
+        height = $target.innerHeight(),
+        width = $target.innerWidth(),
         scrollHeight = $target.prop('scrollHeight'),
         scrollWidth = $target.prop('scrollWidth')
     
     if($target.hasClass('spa-scroll') || $target.hasClass('spa-scroll-x')) {
       if(scrollLeft < 0) {
-        event.preventDefault()
+        // event.preventDefault()
       }
       if(scrollLeft <= 0) {
         $target.scrollLeft(1)
       }
       if(scrollLeft + width > scrollWidth) {
-        event.preventDefault()
+        // event.preventDefault()
       }
       if(scrollLeft + width >= scrollWidth) {
         $target.scrollLeft(scrollWidth - width - 1)
@@ -156,16 +135,16 @@
 
     if($target.hasClass('spa-scroll') || $target.hasClass('spa-scroll-y')) {
       if(scrollTop < 0) {
-        event.preventDefault()
+        // event.preventDefault()
       }
       if(scrollTop <= 0) {
         $target.scrollTop(1)
       }
       if(scrollTop + height > scrollHeight) {
-        event.preventDefault()
+        // event.preventDefault()
       }
       if(scrollTop + height >= scrollHeight) {
-        $target.scrollTop(scrollHeight - height - 1)
+        $target.scrollTop(scrollTop - 1)
       }
     }
           
@@ -289,7 +268,7 @@
       return false
     }
     
-    var routes = $win.data('routes.spa') || {}
+    var routes = $win.data('routes.spa') || {},
         route = options.route || ''
     
     if(!isRegExp(route)) {
@@ -1042,16 +1021,17 @@
         'route.spa': routeRegStr,
         'id.spa': uniqueID()
       }).appendTo($('body'))
+
+      //缓存页面
+      pagescache[hash] = $page
+      $win.data('pagescache.spa', pagescache)
       
+      //获取视图数据
       viewData = pageOptions.view.call($page)
       
       if($.isPlainObject(viewData)) {
         $page.trigger('initpage.spa', viewData)
-      }
-      
-      //缓存该页面
-      pagescache[hash] = $page
-      $win.data('pagescache.spa', pagescache)
+      }      
     }
   })
 
@@ -1096,7 +1076,7 @@
         animate = pushData.animate || route.animate
     
     if(!$curPage) {
-      $curPage = $('<div class="spa-page"><div class="spa-page-body"></div></div>').appendTo($('body'))
+      $curPage = $('<div class="spa-page spa-page-empty"><div class="spa-page-body"></div></div>').appendTo($('body'))
       $win.data('curPage.spa', $curPage)
     }
 
@@ -1111,7 +1091,7 @@
     var beforeclose,
         afterclose
     
-    //判断当前页面是面板还是页面    
+    //判断当前页面是面板还是页面
     if($curPage.hasClass('spa-panel')) {
       var panelOptions = $win.data('panels.spa')[$curPage.data('id.spa')]
       
@@ -1122,16 +1102,16 @@
       
       beforeclose = curPageRoute.beforeclose
       afterclose = curPageRoute.afterclose
+
+      $doc.trigger('navigate.spa', {
+        hash: hash,
+        title: title,
+        pushData: pushData,
+        replace: true
+      })
     }
         
     $doc.trigger('opencover.spa')
-    
-    $doc.trigger('navigate.spa', {
-      hash: hash,
-      title: title,
-      pushData: pushData,
-      replace: true
-    })
             
     var callback = function() {
       route.afteropen.call($page)
@@ -1290,13 +1270,14 @@
         'id.spa': id,
         'pushData.spa': pushData
       }).appendTo($('body'))
-      
-      viewData = panelOptions.view.call($panel)
-      
-      //缓存该页面
+
+      //缓存面板
       panelscache[id] = $panel
       $win.data('panelscache.spa', panelscache)
       
+      //获取视图数据
+      viewData = panelOptions.view.call($panel)
+            
       if($.isPlainObject(viewData)) {
         $panel.trigger('initpanel.spa', viewData)
       }
@@ -1353,7 +1334,7 @@
         replace = options.replace || false
 
     title && (document.title = title)
-    hash = hash ? '#' + hash : ''
+    hash = '#' + hash
     
     if(replace) {
       history.replaceState(pushData, title, hash)
@@ -1440,16 +1421,30 @@
   
 })(jQuery)
 
+/*
+ * requestAnimationFrame and cancel polyfill
+ */
+;(function() {
+  'use strict'
 
+  var lastTime = 0,
+      vendors = ['ms', 'moz', 'webkit', 'o']
+  for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+    window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame']
+    window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame']
+  }
 
+  if (!window.requestAnimationFrame)
+    window.requestAnimationFrame = function(callback, element) {
+      var currTime = new Date().getTime(),
+          timeToCall = Math.max(0, 16 - (currTime - lastTime)),
+          id = window.setTimeout(function() { callback(currTime + timeToCall) }, timeToCall)
+      lastTime = currTime + timeToCall
+      return id
+    };
 
-
-
-
-
-
-
-
-
-
-
+    if (!window.cancelAnimationFrame)
+      window.cancelAnimationFrame = function(id) {
+        clearTimeout(id)
+      }
+})()
