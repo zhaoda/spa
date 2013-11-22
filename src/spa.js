@@ -12,12 +12,14 @@
       routes = {},
       pagezIndex = 2000,
       prevPagezIndex = 2001,
-      curPagezIndex = 2002,  
+      curPagezIndex = 2002,
+      // 缓存视图数量，默认0缓存全部
+      viewcachecount = 0,
       viewStyle = 'body { position: relative; margin: 0; padding: 0; width: 100%; overflow: hidden; }\
         .spa-fullscreen {position: absolute; left: 0; top: 0; margin: 0; padding: 0; width: 100%; visibility: hidden; overflow: hidden; z-index: -1; }\
         .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; }\
         .spa-page-bg {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; }\
-        .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; -webkit-transform: translateZ(0); -webkit-backface-visibility: hidden; }\
+        .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; }\
         .spa-scroll {overflow: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
         .spa-scroll-x {overflow-y: hidden;}\
         .spa-scroll-y {overflow-x: hidden;}\
@@ -1008,8 +1010,7 @@
     
     //页面的hash有匹配的路由规则
     if(isRegExp(routeReg)) {
-      var pagescache = $win.data('pagescache.spa') ||　{},
-          classname = pageOptions.classname ? ' spa-page-' + pageOptions.classname : '',
+      var classname = pageOptions.classname ? ' spa-page-' + pageOptions.classname : '',
           $page = $('<div class="spa-page' + classname + '"><div class="spa-page-bg"></div><div class="spa-page-body"></div></div>'),
           viewData
 
@@ -1023,8 +1024,7 @@
       }).appendTo($('body'))
 
       //缓存页面
-      pagescache[hash] = $page
-      $win.data('pagescache.spa', pagescache)
+      $doc.trigger('viewcache.spa', {view: $page})
       
       //获取视图数据
       viewData = pageOptions.view.call($page)
@@ -1139,6 +1139,10 @@
     } else {
       animate($page, $curPage, callback)
     }
+
+
+    // 更改视图缓存顺序
+    $doc.trigger('viewcachesort.spa', {view: $page})
     
   })
 
@@ -1231,7 +1235,10 @@
       } else {
         animate($panel, $curPage, callback)
       }
-            
+
+      // 更改视图缓存顺序
+      $doc.trigger('viewcachesort.spa', {view: $panel})
+
     } else {
       $doc.trigger('createpanel.spa', [id, pushData])
     }
@@ -1260,8 +1267,7 @@
     if(panelOptions) {
       $doc.trigger('openloader.spa')
 
-      var panelscache = $win.data('panelscache.spa') ||　{},
-          classname = panelOptions.classname ? ' spa-panel-' + panelOptions.classname : '',
+      var classname = panelOptions.classname ? ' spa-panel-' + panelOptions.classname : '',
           $panel = $('<div id="spa-panel-' + id + '" class="spa-page spa-panel ' + classname + '"><div class="spa-page-bg"></div><div class="spa-page-body"></div></div>'),
           viewData
           
@@ -1272,8 +1278,7 @@
       }).appendTo($('body'))
 
       //缓存面板
-      panelscache[id] = $panel
-      $win.data('panelscache.spa', panelscache)
+      $doc.trigger('viewcache.spa', {view: $panel})
       
       //获取视图数据
       viewData = panelOptions.view.call($panel)
@@ -1322,7 +1327,103 @@
       $panel.trigger('closepanel.spa')
     }
   })
+
+
+  /*
+   * 设置清理页面最多缓存的页面数量
+   */
+
+  $doc.on('viewcachecount.spa', function(event, options) {
+    viewcachecount = options.count
+  })
+
+
+  /*
+   * 缓存并清理视图优化内存
+   */
+
+  $doc.on('viewcache.spa', function(event, options) {
+    var $view = options.view,
+        type,
+        key
+
+    // 先缓存
+    var pagescache = $win.data('pagescache.spa') ||　{},
+        panelscache = $win.data('panelscache.spa') ||　{},
+        viewscache = $win.data('viewscache.spa') ||　[]
+
+    if($view.hasClass('spa-panel')) {
+      type = 'panle'
+      key = $view.data('id.spa')
+      panelscache[key] = $view
+    } else {
+      type = 'page'
+      key = $view.data('hash.spa')
+      pagescache[key] = $view
+    }
+
+    viewscache.unshift(type + ':' + key)
+
+    // 再清理
+    if(viewcachecount !== 0 && viewscache.length > viewcachecount) {
+      var cleanup = viewscache.splice(viewcachecount),
+          cleanupsplit,
+          cleanuptype,
+          cleanupkey,
+          cleanupcache
+
+      $.each(cleanup, function(index, value) {
+        cleanupsplit = value.split(':', 2)
+        cleanuptype = cleanupsplit[0]
+        cleanupkey = cleanupsplit[1]
+
+        cleanupcache = cleanuptype == 'page' ? pagescache : panelscache
+        cleanupcache[cleanupkey].html('').remove()
+        delete cleanupcache[cleanupkey]
+      })
+    }
+
+    // 存储新的缓存
+    $win.data('pagescache.spa', pagescache)
+    $win.data('panelscache.spa', panelscache)
+    $win.data('viewscache.spa', viewscache)
+  })
+
+
+  /*
+   * 更新视图缓存顺序
+   */
+
+  $doc.on('viewcachesort.spa', function(event, options) {
+    var $view = options.view,
+        type,
+        key,
+        name,
+        index
+
+    var viewscache = $win.data('viewscache.spa') ||　[]
+
+    if($view.hasClass('spa-panel')) {
+      type = 'panle'
+      key = $view.data('id.spa')
+    } else {
+      type = 'page'
+      key = $view.data('hash.spa')
+    }
+
+    name = type + ':' + key
+    index = viewscache.indexOf(name)
+
+    if(index !== -1) {
+      viewscache.splice(index, 1)
+      viewscache.unshift(name)
+    }
+
+    // 存储新的缓存顺序
+    $win.data('viewscache.spa', viewscache)
+  })
   
+
   /*
    * 路由请求
    */
