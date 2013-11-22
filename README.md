@@ -8,7 +8,7 @@ SPA need to use [jQuery](http://jquery.com/) and CSS3 [jquery.transit](http://ri
 
 SPA support mobile client browser and the desktop side modern browsers.
 
-## Whp SPA?
+## Why SPA?
 
 * Provides fast development to achieve
 * Retained greater design freedom
