@@ -1,30 +1,16 @@
-/*
- * requestAnimationFrame and cancel polyfill
+/*!
+ * SPA v0.1.1
+ * A webapp framework for routing control and view transitions
+ * Copyright 2013 zhaoda <http://zhaoda.net>
+ * Licensed under MIT https://raw.github.com/zhaoda/spa/master/LICENSE
  */
-;(function() {
-  var lastTime = 0,
-      vendors = ['ms', 'moz', 'webkit', 'o']
-  for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
-    window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame']
-    window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame']
-  }
 
-  if (!window.requestAnimationFrame)
-    window.requestAnimationFrame = function(callback, element) {
-      var currTime = new Date().getTime(),
-          timeToCall = Math.max(0, 16 - (currTime - lastTime)),
-          id = window.setTimeout(function() { callback(currTime + timeToCall) }, timeToCall)
-      lastTime = currTime + timeToCall
-      return id
-    };
-
-    if (!window.cancelAnimationFrame)
-      window.cancelAnimationFrame = function(id) {
-        clearTimeout(id)
-      }
-})()
+// SPA
+// ---
 
 ;(function($) {
+  'use strict';
+
   var $win = $(window),
       $doc = $(document),
       $body,
@@ -33,15 +19,17 @@
       routes = {},
       pagezIndex = 2000,
       prevPagezIndex = 2001,
-      curPagezIndex = 2002,  
+      curPagezIndex = 2002,
+      // 缓存视图数量，默认0缓存全部
+      viewcachecount = 0,
       viewStyle = 'body { position: relative; margin: 0; padding: 0; width: 100%; overflow: hidden; }\
         .spa-fullscreen {position: absolute; left: 0; top: 0; margin: 0; padding: 0; width: 100%; visibility: hidden; overflow: hidden; z-index: -1; }\
         .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; }\
         .spa-page-bg {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; }\
         .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; }\
         .spa-scroll {overflow: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
-        .spa-scroll-x {overflow-x: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
-        .spa-scroll-y {overflow-y: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
+        .spa-scroll-x {overflow-y: hidden;}\
+        .spa-scroll-y {overflow-x: hidden;}\
         .spa-cover {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; z-index: 5000; }\
         .spa-loader {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; overflow: hidden; z-index: 5001; }',
       loaderBody = '<div class="spa-loader-animate"><span></span><span></span><span></span></div>',
@@ -127,27 +115,27 @@
     var $target = $(event.target),
         direction = (options && options.direction) || ''
     
-    $target.addClass('spa-scroll' + (direction ? '-' + direction : ''))    
+    $target.addClass('spa-scroll' + (direction ? ' spa-scroll-' + direction : ''))    
   })
 
   $doc.on('touchstart', '.spa-scroll, .spa-scroll-x, .spa-scroll-y', function(event) {
     var $target = $(event.currentTarget),
         scrollTop = $target.scrollTop(),
         scrollLeft = $target.scrollLeft(),
-        height = $target.height(),
-        width = $target.width(),
+        height = $target.innerHeight(),
+        width = $target.innerWidth(),
         scrollHeight = $target.prop('scrollHeight'),
         scrollWidth = $target.prop('scrollWidth')
     
     if($target.hasClass('spa-scroll') || $target.hasClass('spa-scroll-x')) {
       if(scrollLeft < 0) {
-        event.preventDefault()
+        // event.preventDefault()
       }
       if(scrollLeft <= 0) {
         $target.scrollLeft(1)
       }
       if(scrollLeft + width > scrollWidth) {
-        event.preventDefault()
+        // event.preventDefault()
       }
       if(scrollLeft + width >= scrollWidth) {
         $target.scrollLeft(scrollWidth - width - 1)
@@ -156,16 +144,16 @@
 
     if($target.hasClass('spa-scroll') || $target.hasClass('spa-scroll-y')) {
       if(scrollTop < 0) {
-        event.preventDefault()
+        // event.preventDefault()
       }
       if(scrollTop <= 0) {
         $target.scrollTop(1)
       }
       if(scrollTop + height > scrollHeight) {
-        event.preventDefault()
+        // event.preventDefault()
       }
       if(scrollTop + height >= scrollHeight) {
-        $target.scrollTop(scrollHeight - height - 1)
+        $target.scrollTop(scrollTop - 1)
       }
     }
           
@@ -289,7 +277,7 @@
       return false
     }
     
-    var routes = $win.data('routes.spa') || {}
+    var routes = $win.data('routes.spa') || {},
         route = options.route || ''
     
     if(!isRegExp(route)) {
@@ -348,7 +336,7 @@
     })
 
     $.each(names, function(key, value) {
-      if(key % 2 == 0) {
+      if(key % 2 === 0) {
         transitPageAnimatesName[value] = names[key + 1]
       } else {
         transitPageAnimatesName[value] = names[key - 1]
@@ -541,7 +529,7 @@
       })
       $fromPageBody.transition({x: '-100%'}, function() {
         $fromPageBody.css({x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
     },
     pushOutRight: function($toPage, $fromPage, callback) {
@@ -552,7 +540,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({x: '100%'}, function() {
         $fromPageBody.css({x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({x: '-100%'}).transition({x: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -566,7 +554,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({x: '100%'}, function() {
         $fromPageBody.css({x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({x: '-100%'}).transition({x: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -580,7 +568,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({x: '-100%'}, function() {
         $fromPageBody.css({x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({x: '100%'}).transition({x: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -594,7 +582,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '-100%'}, function() {
         $fromPageBody.css({y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({y: '100%'}).transition({y: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -608,7 +596,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '100%'}, function() {
         $fromPageBody.css({y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({y: '-100%'}).transition({y: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -622,7 +610,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '100%'}, function() {
         $fromPageBody.css({y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({y: '-100%'}).transition({y: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -636,7 +624,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '-100%'}, function() {
         $fromPageBody.css({y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({y: '100%'}).transition({y: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -881,7 +869,7 @@
       })
       $fromPageBody.transition({x: prevPageBodyWidth}, function() {
         $fromPageBody.css({width: 'auto', left: 0, x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
     },
     pushPartInRight: function($toPage, $fromPage, callback) {
@@ -912,7 +900,7 @@
       })
       $fromPageBody.transition({x: 0 - prevPageBodyWidth}, function() {
         $fromPageBody.css({width: 'auto', right: 0, x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
     },
     pushPartInUp: function($toPage, $fromPage, callback) {
@@ -943,7 +931,7 @@
       })
       $fromPageBody.transition({y: prevPageBodyHeight}, function() {
         $fromPageBody.css({height: 'auto', top: 0, y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
     },
     pushPartInDown: function($toPage, $fromPage, callback) {
@@ -974,7 +962,7 @@
       })
       $fromPageBody.transition({y: 0 - prevPageBodyHeight}, function() {
         $fromPageBody.css({height: 'auto', bottom: 0, y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
     }
   })
@@ -990,9 +978,10 @@
   //页面转场
   function transitPage($toPage, $fromPage, animate, callback) {
     var $toPageBody = $('.spa-page-body', $toPage),
-        $fromPageBody = $('.spa-page-body', $fromPage),
-        animate = transitPageAnimatesName[animate] ? animate : 'defaultInOut'
+        $fromPageBody = $('.spa-page-body', $fromPage)
     
+    transitPageAnimatesName[animate] || (animate = 'defaultInOut')
+
     transitPageAnimates[animate].apply($toPage, [$toPage, $fromPage, callback])
   }
   
@@ -1029,8 +1018,7 @@
     
     //页面的hash有匹配的路由规则
     if(isRegExp(routeReg)) {
-      var pagescache = $win.data('pagescache.spa') ||　{},
-          classname = pageOptions.classname ? ' spa-page-' + pageOptions.classname : '',
+      var classname = pageOptions.classname ? ' spa-page-' + pageOptions.classname : '',
           $page = $('<div class="spa-page' + classname + '"><div class="spa-page-bg"></div><div class="spa-page-body"></div></div>'),
           viewData
 
@@ -1042,16 +1030,16 @@
         'route.spa': routeRegStr,
         'id.spa': uniqueID()
       }).appendTo($('body'))
+
+      //缓存页面
+      $doc.trigger('viewcache.spa', {view: $page})
       
+      //获取视图数据
       viewData = pageOptions.view.call($page)
       
       if($.isPlainObject(viewData)) {
         $page.trigger('initpage.spa', viewData)
-      }
-      
-      //缓存该页面
-      pagescache[hash] = $page
-      $win.data('pagescache.spa', pagescache)
+      }      
     }
   })
 
@@ -1096,7 +1084,7 @@
         animate = pushData.animate || route.animate
     
     if(!$curPage) {
-      $curPage = $('<div class="spa-page"><div class="spa-page-body"></div></div>').appendTo($('body'))
+      $curPage = $('<div class="spa-page spa-page-empty"><div class="spa-page-body"></div></div>').appendTo($('body'))
       $win.data('curPage.spa', $curPage)
     }
 
@@ -1111,7 +1099,7 @@
     var beforeclose,
         afterclose
     
-    //判断当前页面是面板还是页面    
+    //判断当前页面是面板还是页面
     if($curPage.hasClass('spa-panel')) {
       var panelOptions = $win.data('panels.spa')[$curPage.data('id.spa')]
       
@@ -1122,16 +1110,16 @@
       
       beforeclose = curPageRoute.beforeclose
       afterclose = curPageRoute.afterclose
+
+      $doc.trigger('navigate.spa', {
+        hash: hash,
+        title: title,
+        pushData: pushData,
+        replace: true
+      })
     }
         
     $doc.trigger('opencover.spa')
-    
-    $doc.trigger('navigate.spa', {
-      hash: hash,
-      title: title,
-      pushData: pushData,
-      replace: true
-    })
             
     var callback = function() {
       route.afteropen.call($page)
@@ -1159,6 +1147,10 @@
     } else {
       animate($page, $curPage, callback)
     }
+
+
+    // 更改视图缓存顺序
+    $doc.trigger('viewcachesort.spa', {view: $page})
     
   })
 
@@ -1209,8 +1201,9 @@
     }
     
     var panelscache = $win.data('panelscache.spa') ||　{},
-        $panel = panelscache[id],
-        pushData = pushData || {}
+        $panel = panelscache[id]
+
+    pushData || (pushData = {})
     
     if($panel) {
       var panels = $win.data('panels.spa'),
@@ -1251,7 +1244,10 @@
       } else {
         animate($panel, $curPage, callback)
       }
-            
+
+      // 更改视图缓存顺序
+      $doc.trigger('viewcachesort.spa', {view: $panel})
+
     } else {
       $doc.trigger('createpanel.spa', [id, pushData])
     }
@@ -1280,8 +1276,7 @@
     if(panelOptions) {
       $doc.trigger('openloader.spa')
 
-      var panelscache = $win.data('panelscache.spa') ||　{},
-          classname = panelOptions.classname ? ' spa-panel-' + panelOptions.classname : '',
+      var classname = panelOptions.classname ? ' spa-panel-' + panelOptions.classname : '',
           $panel = $('<div id="spa-panel-' + id + '" class="spa-page spa-panel ' + classname + '"><div class="spa-page-bg"></div><div class="spa-page-body"></div></div>'),
           viewData
           
@@ -1290,13 +1285,13 @@
         'id.spa': id,
         'pushData.spa': pushData
       }).appendTo($('body'))
+
+      //缓存面板
+      $doc.trigger('viewcache.spa', {view: $panel})
       
+      //获取视图数据
       viewData = panelOptions.view.call($panel)
-      
-      //缓存该页面
-      panelscache[id] = $panel
-      $win.data('panelscache.spa', panelscache)
-      
+            
       if($.isPlainObject(viewData)) {
         $panel.trigger('initpanel.spa', viewData)
       }
@@ -1341,7 +1336,103 @@
       $panel.trigger('closepanel.spa')
     }
   })
+
+
+  /*
+   * 设置清理页面最多缓存的页面数量
+   */
+
+  $doc.on('viewcachecount.spa', function(event, options) {
+    viewcachecount = options.count
+  })
+
+
+  /*
+   * 缓存并清理视图优化内存
+   */
+
+  $doc.on('viewcache.spa', function(event, options) {
+    var $view = options.view,
+        type,
+        key
+
+    // 先缓存
+    var pagescache = $win.data('pagescache.spa') ||　{},
+        panelscache = $win.data('panelscache.spa') ||　{},
+        viewscache = $win.data('viewscache.spa') ||　[]
+
+    if($view.hasClass('spa-panel')) {
+      type = 'panle'
+      key = $view.data('id.spa')
+      panelscache[key] = $view
+    } else {
+      type = 'page'
+      key = $view.data('hash.spa')
+      pagescache[key] = $view
+    }
+
+    viewscache.unshift(type + ':' + key)
+
+    // 再清理
+    if(viewcachecount !== 0 && viewscache.length > viewcachecount) {
+      var cleanup = viewscache.splice(viewcachecount),
+          cleanupsplit,
+          cleanuptype,
+          cleanupkey,
+          cleanupcache
+
+      $.each(cleanup, function(index, value) {
+        cleanupsplit = value.split(':', 2)
+        cleanuptype = cleanupsplit[0]
+        cleanupkey = cleanupsplit[1]
+
+        cleanupcache = cleanuptype == 'page' ? pagescache : panelscache
+        cleanupcache[cleanupkey].html('').remove()
+        delete cleanupcache[cleanupkey]
+      })
+    }
+
+    // 存储新的缓存
+    $win.data('pagescache.spa', pagescache)
+    $win.data('panelscache.spa', panelscache)
+    $win.data('viewscache.spa', viewscache)
+  })
+
+
+  /*
+   * 更新视图缓存顺序
+   */
+
+  $doc.on('viewcachesort.spa', function(event, options) {
+    var $view = options.view,
+        type,
+        key,
+        name,
+        index
+
+    var viewscache = $win.data('viewscache.spa') ||　[]
+
+    if($view.hasClass('spa-panel')) {
+      type = 'panle'
+      key = $view.data('id.spa')
+    } else {
+      type = 'page'
+      key = $view.data('hash.spa')
+    }
+
+    name = type + ':' + key
+    index = viewscache.indexOf(name)
+
+    if(index !== -1) {
+      viewscache.splice(index, 1)
+      viewscache.unshift(name)
+    }
+
+    // 存储新的缓存顺序
+    $win.data('viewscache.spa', viewscache)
+  })
   
+
   /*
    * 路由请求
    */
@@ -1353,7 +1444,7 @@
         replace = options.replace || false
 
     title && (document.title = title)
-    hash = hash ? '#' + hash : ''
+    hash = '#' + hash
     
     if(replace) {
       history.replaceState(pushData, title, hash)
@@ -1440,16 +1531,30 @@
   
 })(jQuery)
 
+/*
+ * requestAnimationFrame and cancel polyfill
+ */
+;(function() {
+  'use strict';
 
+  var lastTime = 0,
+      vendors = ['ms', 'moz', 'webkit', 'o']
+  for(var x = 0; x < vendors.length && !window.requestAnimationFrame; ++x) {
+    window.requestAnimationFrame = window[vendors[x]+'RequestAnimationFrame']
+    window.cancelAnimationFrame = window[vendors[x]+'CancelAnimationFrame'] || window[vendors[x]+'CancelRequestAnimationFrame']
+  }
 
+  if (!window.requestAnimationFrame)
+    window.requestAnimationFrame = function(callback, element) {
+      var currTime = new Date().getTime(),
+          timeToCall = Math.max(0, 16 - (currTime - lastTime)),
+          id = window.setTimeout(function() { callback(currTime + timeToCall) }, timeToCall)
+      lastTime = currTime + timeToCall
+      return id
+    };
 
-
-
-
-
-
-
-
-
-
-
+    if (!window.cancelAnimationFrame)
+      window.cancelAnimationFrame = function(id) {
+        clearTimeout(id)
+      }
+})()

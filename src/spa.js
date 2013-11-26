@@ -2,7 +2,7 @@
 // ---
 
 ;(function($) {
-  'use strict'
+  'use strict';
 
   var $win = $(window),
       $doc = $(document),
@@ -329,7 +329,7 @@
     })
 
     $.each(names, function(key, value) {
-      if(key % 2 == 0) {
+      if(key % 2 === 0) {
         transitPageAnimatesName[value] = names[key + 1]
       } else {
         transitPageAnimatesName[value] = names[key - 1]
@@ -522,7 +522,7 @@
       })
       $fromPageBody.transition({x: '-100%'}, function() {
         $fromPageBody.css({x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
     },
     pushOutRight: function($toPage, $fromPage, callback) {
@@ -533,7 +533,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({x: '100%'}, function() {
         $fromPageBody.css({x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({x: '-100%'}).transition({x: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -547,7 +547,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({x: '100%'}, function() {
         $fromPageBody.css({x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({x: '-100%'}).transition({x: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -561,7 +561,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({x: '-100%'}, function() {
         $fromPageBody.css({x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({x: '100%'}).transition({x: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -575,7 +575,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '-100%'}, function() {
         $fromPageBody.css({y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({y: '100%'}).transition({y: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -589,7 +589,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '100%'}, function() {
         $fromPageBody.css({y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({y: '-100%'}).transition({y: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -603,7 +603,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '100%'}, function() {
         $fromPageBody.css({y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({y: '-100%'}).transition({y: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -617,7 +617,7 @@
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition({y: '-100%'}, function() {
         $fromPageBody.css({y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
       $toPageBody.css({y: '100%'}).transition({y: '0'}, function() {
         ++isFinish == 2 && callback()
@@ -862,7 +862,7 @@
       })
       $fromPageBody.transition({x: prevPageBodyWidth}, function() {
         $fromPageBody.css({width: 'auto', left: 0, x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
     },
     pushPartInRight: function($toPage, $fromPage, callback) {
@@ -893,7 +893,7 @@
       })
       $fromPageBody.transition({x: 0 - prevPageBodyWidth}, function() {
         $fromPageBody.css({width: 'auto', right: 0, x: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
     },
     pushPartInUp: function($toPage, $fromPage, callback) {
@@ -924,7 +924,7 @@
       })
       $fromPageBody.transition({y: prevPageBodyHeight}, function() {
         $fromPageBody.css({height: 'auto', top: 0, y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
     },
     pushPartInDown: function($toPage, $fromPage, callback) {
@@ -955,7 +955,7 @@
       })
       $fromPageBody.transition({y: 0 - prevPageBodyHeight}, function() {
         $fromPageBody.css({height: 'auto', bottom: 0, y: 0})
-        ++isFinish == 2 && callback()
+        ;++isFinish == 2 && callback()
       })
     }
   })
@@ -971,9 +971,10 @@
   //页面转场
   function transitPage($toPage, $fromPage, animate, callback) {
     var $toPageBody = $('.spa-page-body', $toPage),
-        $fromPageBody = $('.spa-page-body', $fromPage),
-        animate = transitPageAnimatesName[animate] ? animate : 'defaultInOut'
+        $fromPageBody = $('.spa-page-body', $fromPage)
     
+    transitPageAnimatesName[animate] || (animate = 'defaultInOut')
+
     transitPageAnimates[animate].apply($toPage, [$toPage, $fromPage, callback])
   }
   
@@ -1193,8 +1194,9 @@
     }
     
     var panelscache = $win.data('panelscache.spa') ||　{},
-        $panel = panelscache[id],
-        pushData = pushData || {}
+        $panel = panelscache[id]
+
+    pushData || (pushData = {})
     
     if($panel) {
       var panels = $win.data('panels.spa'),
@@ -1526,7 +1528,7 @@
  * requestAnimationFrame and cancel polyfill
  */
 ;(function() {
-  'use strict'
+  'use strict';
 
   var lastTime = 0,
       vendors = ['ms', 'moz', 'webkit', 'o']
