@@ -38,6 +38,6 @@
     "grunt-contrib-uglify": "~0.2.7"
   },
   "scripts": {
-    "test": "grunt --verbose"
+    "test": "grunt"
   }
 }
