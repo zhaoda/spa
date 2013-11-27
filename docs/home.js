@@ -219,7 +219,7 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
       <h3>转换动画</h3>\
       <p>\
       SPA内置了26组视图转换动画，每组包含一个入场动画和一个相反的出场动画，比如<code>fadeIn & fadeOut</code>、<code>pushInRight & pushOutLeft</code>，\
-      其中有3组动画是只支持面板视图，比如<code>overlayInUp & overlayOutDown</code>，\
+      其中有12组动画是只支持面板视图，比如<code>overlayInUp & overlayOutDown</code>，\
       </p>\
       <p>\
       可以通过<code>$doc.trigger("addTransitPageAnimates.spa", <em>Animates</em>)</code>添加自定义的视图转换动画；\
@@ -227,10 +227,119 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
       <p>\
       如果视图通过异步加载，将触发遮罩层和loading动画（可自定义）；\
       </p>\
+      <h4>页面视图转换动画</h4>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="default">default</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeIn">fadeIn</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOut">fadeOut</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeInLeft">fadeInLeft</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOutRight">fadeOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeInRight">fadeInRight</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOutLeft">fadeOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeInUp">fadeInUp</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOutDown">fadeOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeInDown">fadeInDown</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOutUp">fadeOutUp</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideInLeft">slideInLeft</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideOutRight">slideOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideInRight">slideInRight</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideOutLeft">slideOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideInUp">slideInUp</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideOutDown">slideOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideInDown">slideInDown</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideOutUp">slideOutUp</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushInLeft">pushInLeft</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushOutRight">pushOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushInRight">pushInRight</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushOutLeft">pushOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushInUp">pushInUp</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushOutDown">pushOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushInDown">pushInDown</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushOutUp">pushOutUp</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="zoomIn">zoomIn</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="zoomOut">zoomOut</a>\
+      </p>\
+      <h4>面板视图转换动画</h4>\
+      <p class="text-warning">注意：面板视图只支持正向的入场动画</p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="overlayInLeft">overlayInLeft</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">overlayOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="overlayInRight">overlayInRight</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">overlayOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="overlayInUp">overlayInUp</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">overlayOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="overlayInDown">overlayInDown</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">overlayOutUp</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="revealInLeft">revealInLeft</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">revealOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="revealInRight">revealInRight</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">revealOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="revealInUp">revealInUp</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">revealOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="revealInDown">revealInDown</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">revealOutUp</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="pushPartInLeft">pushPartInLeft</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">pushPartOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="pushPartInRight">pushPartInRight</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">pushPartOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="pushPartInUp">pushPartInUp</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">pushPartOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="pushPartInDown">pushPartInDown</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">pushPartOutUp</a>\
+      </p>\
       <div class="page-header"><h1>API文档和用例</h1></div>\
       <p>\
-      完善中……\
-      <!--a href="#api" class="btn btn-info btn-lg">API文档</a-->\
+      <a class="btn btn-lg btn-success" href="https://github.com/zhaoda/spa/wiki" target="_blank">spa wiki</a>\
       </p>\
       <div class="page-header"><h1>License</h1></div>\
       <p>\
@@ -241,6 +350,12 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
   ',
   init: function() {
     var $view = this
+
+    // 获取hash
+    function getHash(url) {
+      url = url || location.href
+      return url.replace(/^[^#]*#?\/?(.*)\/?$/, '$1')
+    }
     
     $('pre', $view).each(function(i, e) { hljs.highlightBlock(e) })
     
@@ -250,6 +365,23 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
           panelid = $btn.attr('data-panel')
       
       $doc.trigger('openpanel.spa', [panelid])
+    })
+
+    $view.on('click', '.btn-transitpage', function(event) {
+      event.preventDefault()
+      var $btn = $(this),
+          animate = $btn.attr('data-animate'),
+          hash = getHash($btn.attr('href'))
+      
+      $doc.trigger('navigate.spa', {hash: hash, pushData: {animate: animate}})
+    })
+
+    $view.on('click', '.btn-transitpanel', function(event) {
+      event.preventDefault()
+      var $btn = $(this),
+          animate = $btn.attr('data-animate')
+      
+      $doc.trigger('openpanel.spa', ['demoPanelTransit', {animate: animate}])
     })
     
     $('.page-container-navbar', $view).trigger('scroll.spa')

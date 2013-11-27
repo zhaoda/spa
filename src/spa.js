@@ -1082,7 +1082,8 @@
     }
 
     //如果是返回之前的页面，强制设置为之前页面的反相动画效果
-    if($curPage && $curPage.data('prevPage.spa') && $curPage.data('prevPage.spa').data('id.spa') == $page.data('id.spa')) {
+    //但是，pushData.animate的优先级更高
+    if(!pushData.animate && $curPage && $curPage.data('prevPage.spa') && $curPage.data('prevPage.spa').data('id.spa') == $page.data('id.spa')) {
       var prevAnimate = $curPage.data('prevAnimate.spa')
       if(prevAnimate && !$.isFunction(prevAnimate)) {
         animate = transitPageAnimatesName[prevAnimate]

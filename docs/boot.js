@@ -1,13 +1,14 @@
 requirejs.config({
   baseUrl: '',
-  urlArgs: "bust=" +  (new Date()).getTime(),
+  urlArgs: "v=" +  (new Date()).getTime(),
+  // urlArgs: 'v=20131127',
   paths: {}
 })
 
 
 var $doc = $(document)
 
-//首页
+// 首页
 var pageHome = {
   route: '',
   classname: 'home',
@@ -20,7 +21,7 @@ var pageHome = {
   }
 }
 
-//demo:打开新页面视图
+// demo:打开新页面视图
 var demoNewPage = {
   route: 'demo/newpage',
   classname: 'demo-newpage',
@@ -33,9 +34,23 @@ var demoNewPage = {
   }
 }
 
-$doc.trigger('route.spa', [pageHome, demoNewPage])
+// demo:页面视图转换动画
+var demoTransitPage = {
+  route: 'demo/transitpage',
+  classname: 'demo-transitpage',
+  animate: 'default',
+  view: function() {
+    var $page = this
+    requirejs(['demo.transitpage'], function(viewData) {
+      $page.trigger('initpage.spa', viewData)
+    })
+  }
+}
 
-//导航菜单面板
+
+$doc.trigger('route.spa', [pageHome, demoNewPage, demoTransitPage])
+
+// 导航菜单面板
 var panelMenu = {
   id: 'menu',
   classname: 'menu',
@@ -48,7 +63,7 @@ var panelMenu = {
   }
 }
 
-//demo:侧边栏菜单
+// demo:侧边栏菜单
 var demoPanelSidemenu = {
   id: 'demoPanelSidemenu',
   classname: 'demo-panel-sidemenu',
@@ -61,7 +76,7 @@ var demoPanelSidemenu = {
   }
 }
 
-//demo:提示对话框
+// demo:提示对话框
 var demoPanelAlert = {
   id: 'demoPanelAlert',
   classname: 'demo-panel-alert',
@@ -74,7 +89,7 @@ var demoPanelAlert = {
   }
 }
 
-//demo:确认对话框
+// demo:确认对话框
 var demoPanelConfirm = {
   id: 'demoPanelConfirm',
   classname: 'demo-panel-confirm',
@@ -87,7 +102,20 @@ var demoPanelConfirm = {
   }
 }
 
-$doc.trigger('panel.spa', [panelMenu, demoPanelSidemenu, demoPanelAlert, demoPanelConfirm])
+// demo:面板视图转换动画
+var demoPanelTransit = {
+  id: 'demoPanelTransit',
+  classname: 'demo-panel-transit',
+  animate: 'overlayInLeft',
+  view: function() {
+    var $panel = this
+    requirejs(['demo.paneltransit'], function(viewData) {
+      $panel.trigger('initpanel.spa', viewData)
+    })
+  }
+}
+
+$doc.trigger('panel.spa', [panelMenu, demoPanelSidemenu, demoPanelAlert, demoPanelConfirm, demoPanelTransit])
 
 
 $(function() {
