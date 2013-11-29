@@ -19,7 +19,7 @@ define({
       来快速构建你的WebApp；\
       </p>\
       <p>\
-      SPA需要用<a href="http://jquery.com/" target="_blank">jQuery</a>和<a href="http://ricostacruz.com/jquery.transit/" target="_blank">jquery.transit</a>支持DOM操作和CSS3动画，\
+      SPA依赖<a href="http://jquery.com/" target="_blank">jQuery</a>进行DOM操作，\
       并且每个视图可以通过<a href="http://requirejs.org/" target="_blank">RequireJS</a>、<a href="http://seajs.org/docs/" target="_blank">Sea.js</a>等CommonJS解决方案或者自定义的方式进行模块化组织、异步加载；\
       </p>\
       <p>\
