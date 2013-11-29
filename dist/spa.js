@@ -1,5 +1,5 @@
 /*!
- * SPA v0.2.0
+ * SPA v0.2.1
  * A webapp framework for routing control and view transitions
  * Copyright 2013 zhaoda <http://zhaoda.net>
  * Licensed under MIT https://raw.github.com/zhaoda/spa/master/LICENSE
@@ -22,7 +22,7 @@
       curPagezIndex = 2002,
       // 缓存视图数量，默认0缓存全部
       viewcachecount = 0,
-      viewStyle = 'body { position: relative; margin: 0; padding: 0; width: 100%; overflow: hidden; }\
+      viewStyle = 'body {position: relative; margin: 0; padding: 0; width: 100%; overflow: hidden;}\
         .spa-fullscreen {position: absolute; left: 0; top: 0; margin: 0; padding: 0; width: 100%; visibility: hidden; overflow: hidden; z-index: -1; }\
         .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; }\
         .spa-page-bg {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; }\
@@ -34,7 +34,7 @@
         .spa-loader {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; overflow: hidden; z-index: 5001; }',
       loaderBody = '<div class="spa-loader-animate"><span></span><span></span><span></span></div>',
       loaderStyle = '.spa-loader .spa-loader-animate {position: absolute; left: 50%; top: 50%; margin: -12px 0 0 -65px; }\
-        .spa-loader .spa-loader-animate span { display: inline-block; vertical-align: middle; width: 10px; height: 10px; margin: 0 10px; background: black; border-radius: 50px; -webkit-animation: loader 0.9s infinite alternate; -moz-animation: loader 0.9s infinite alternate; }\
+        .spa-loader .spa-loader-animate span { display: inline-block; vertical-align: middle; width: 10px; height: 10px; margin: 0 10px; background: black; border-radius: 50px; -webkit-animation: loader 0.9s infinite alternate; animation: loader 0.9s infinite alternate; }\
         .spa-loader .spa-loader-animate span:nth-of-type(2) { -webkit-animation-delay: 0.3s; -moz-animation-delay: 0.3s; }\
         .spa-loader .spa-loader-animate span:nth-of-type(3) { -webkit-animation-delay: 0.6s; -moz-animation-delay: 0.6s; }\
         @-webkit-keyframes loader {\
@@ -100,9 +100,7 @@
       cancelAnimationFrame(requestID)
       $currentTarget.removeData('adjustfullscreenRequestID')
     } else {
-      $currentTarget.data('fullpageRequestID', requestAnimationFrame(function() {
-        adjust()
-      }))
+      $currentTarget.data('fullpageRequestID', requestAnimationFrame(adjust))
     }
   })
   
@@ -319,8 +317,78 @@
   }
     
   var transitPageAnimates = {},
-      transitPageAnimatesName = {}
-  
+      transitPageAnimatesName = {},
+      transformName = 'transform',
+      transitionName = 'transition',
+      transitionEndEvent = 'transitionend'
+
+  ;(function() {
+    var transitions = {
+      'transition': ['transform', 'transitionend'],
+      'WebkitTransition': ['WebkitTransform', 'webkitTransitionEnd'],
+      'MSTransition': ['MSTransform', 'msTransitionEnd'],
+      'MozTransition': ['MozTransform', 'transitionend'],
+      'OTransition': ['OTransform', 'transitionend'],
+    },
+    el = $('<div></div>').get(0),
+    t
+
+    for(t in transitions){
+      if(el.style[t] !== undefined ) {
+        transitionName = t
+        transformName = transitions[t][0]
+        transitionEndEvent = transitions[t][1]
+      }
+      return
+    }
+  })()
+
+  // $el.transition
+  $.fn.transition = function(properties, callback) {
+    var $el = $(this)
+
+    // 防止同时重绘
+    setTimeout(function() {
+      properties[transitionName] = '0.4s'
+      $el.css(properties).emulateTransitionEnd(function() {
+        // 过渡动画结束后移除 transition
+        properties = {}
+        properties[transitionName] = ''
+        $el.css(properties)
+        callback && callback()
+      })
+    }, 0)
+
+
+    return $el
+  }
+
+  // transitionEnd 回调
+  $.fn.emulateTransitionEnd = function(callback, duration) {
+    var called = false,
+        $el = $(this),
+        endtimer
+
+    duration = duration || 416
+
+    // 只执行一次
+    $el.one(transitionEndEvent, function() {
+      called = true
+      clearTimeout(endtimer)
+      callback.call($el)
+    })
+
+    // 确保transitionend被执行
+    var endcallback = function() {
+      if(!called) {
+        $el.trigger(transitionEndEvent)
+      }
+    }
+    endtimer = setTimeout(endcallback, duration)
+
+    return $el
+  }
+
   //默认转场动画
   transitPageAnimates.defaultInOut = function($toPage, $fromPage, callback) {
     togglePagezIndex($fromPage, $toPage)
@@ -349,171 +417,255 @@
   $doc.trigger('addTransitPageAnimates.spa', {
     fadeIn: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          toStartCss = {opacity: 0},
+          toEndCss = {opacity: 1}
           
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({opacity: 0}).transition({opacity: 1}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     fadeOut: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          fromStartCss = {opacity: 0},
+          fromEndCss = {opacity: 1}
 
-      $fromPageBody.transition({opacity: 0}, function() {
-        $fromPageBody.css({opacity: 1})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })      
     },
     fadeInLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          toStartCss = {opacity: 0},
+          toEndCss = {opacity: 1}
+
+      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({x: '100%', opacity: 0}).transition({x: '0', opacity: 1}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     fadeOutRight: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          fromStartCss = {opacity: 0},
+          fromEndCss = {opacity: 1}
 
-      $fromPageBody.transition({x: '100%', opacity: 0}, function() {
-        $fromPageBody.css({x: 0, opacity: 1})
+      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
     },
     fadeInRight: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          toStartCss = {opacity: 0},
+          toEndCss = {opacity: 1}
+
+      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({x: '-100%', opacity: 0}).transition({x: '0', opacity: 1}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     fadeOutLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          fromStartCss = {opacity: 0},
+          fromEndCss = {opacity: 1}
 
-      $fromPageBody.transition({x: '-100%', opacity: 0}, function() {
-        $fromPageBody.css({x: 0, opacity: 1})
+      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
     },
     fadeInUp: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          toStartCss = {opacity: 0},
+          toEndCss = {opacity: 1}
+
+      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({y: '100%', opacity: 0}).transition({y: '0', opacity: 1}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     fadeOutDown: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          fromStartCss = {opacity: 0},
+          fromEndCss = {opacity: 1}
 
-      $fromPageBody.transition({y: '100%', opacity: 0}, function() {
-        $fromPageBody.css({y: 0, opacity: 1})
+      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0%, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
     },
     fadeInDown: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          toStartCss = {opacity: 0},
+          toEndCss = {opacity: 1}
+
+      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({y: '-100%', opacity: 0}).transition({y: '0', opacity: 1}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     fadeOutUp: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          fromStartCss = {opacity: 0},
+          fromEndCss = {opacity: 1}
 
-      $fromPageBody.transition({y: '-100%', opacity: 0}, function() {
-        $fromPageBody.css({y: 0, opacity: 1})
+      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0%, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
     },
     slideInLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          toStartCss = {},
+          toEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({x: '100%'}).transition({x: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     slideOutRight: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          fromStartCss = {},
+          fromEndCss = {}
 
-      $fromPageBody.transition({x: '100%'}, function() {
-        $fromPageBody.css({x: 0})
+      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
     },
     slideInRight: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          toStartCss = {},
+          toEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({x: '-100%'}).transition({x: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     slideOutLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          fromStartCss = {},
+          fromEndCss = {}
 
-      $fromPageBody.transition({x: '-100%'}, function() {
-        $fromPageBody.css({x: 0})
+      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
     },
     slideInUp: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          toStartCss = {},
+          toEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({y: '100%'}).transition({y: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     slideOutDown: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          fromStartCss = {},
+          fromEndCss = {}
 
-      $fromPageBody.transition({y: '100%'}, function() {
-        $fromPageBody.css({y: 0})
+      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0%, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
     },
     slideInDown: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          toStartCss = {},
+          toEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({y: '-100%'}).transition({y: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     slideOutUp: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          fromStartCss = {},
+          fromEndCss = {}
 
-      $fromPageBody.transition({y: '-100%'}, function() {
-        $fromPageBody.css({y: 0})
+      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0%, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -521,130 +673,220 @@
     pushInLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          toEndCss = {},
+          fromStartCss = {},
+          fromEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({x: '100%'}).transition({x: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })
-      $fromPageBody.transition({x: '-100%'}, function() {
-        $fromPageBody.css({x: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
     },
     pushOutRight: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          toEndCss = {},
+          fromStartCss = {},
+          fromEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $fromPageBody.transition({x: '100%'}, function() {
-        $fromPageBody.css({x: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
-      $toPageBody.css({x: '-100%'}).transition({x: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })
     },
     pushInRight: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          toEndCss = {},
+          fromStartCss = {},
+          fromEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $fromPageBody.transition({x: '100%'}, function() {
-        $fromPageBody.css({x: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
-      $toPageBody.css({x: '-100%'}).transition({x: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })
     },
     pushOutLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          toEndCss = {},
+          fromStartCss = {},
+          fromEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $fromPageBody.transition({x: '-100%'}, function() {
-        $fromPageBody.css({x: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
-      $toPageBody.css({x: '100%'}).transition({x: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })
     },
     pushInUp: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          toEndCss = {},
+          fromStartCss = {},
+          fromEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $fromPageBody.transition({y: '-100%'}, function() {
-        $fromPageBody.css({y: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
-      $toPageBody.css({y: '100%'}).transition({y: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })
     },
     pushOutDown: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          toEndCss = {},
+          fromStartCss = {},
+          fromEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $fromPageBody.transition({y: '100%'}, function() {
-        $fromPageBody.css({y: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
-      $toPageBody.css({y: '-100%'}).transition({y: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })
     },
     pushInDown: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          toEndCss = {},
+          fromStartCss = {},
+          fromEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $fromPageBody.transition({y: '100%'}, function() {
-        $fromPageBody.css({y: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
-      $toPageBody.css({y: '-100%'}).transition({y: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })
     },
     pushOutUp: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          toEndCss = {},
+          fromStartCss = {},
+          fromEndCss = {}
+
+      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+
+      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $fromPageBody.transition({y: '-100%'}, function() {
-        $fromPageBody.css({y: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
-      $toPageBody.css({y: '100%'}).transition({y: '0'}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })
     },
     zoomIn: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          toStartCss = {},
+          toEndCss = {}
+
+      toStartCss[transformName] = 'scale3d(0, 0, 0)'
+      toEndCss[transformName] = 'scale3d(1, 1, 1)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({scale: 0}).transition({scale: 1}, function() {
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     zoomOut: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage)
+          $fromPageBody = $('.spa-page-body', $fromPage),
+          fromStartCss = {},
+          fromEndCss = {}
 
-      $fromPageBody.transition({scale: 0}, function() {
-        $fromPageBody.css({scale: 1})
+      fromStartCss[transformName] = 'scale3d(0, 0, 0)'
+      fromEndCss[transformName] = 'scale3d(1, 1, 1)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -652,22 +894,33 @@
     overlayInLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          pageBodyWidth = $toPageBody.children().width()
+          pageBodyWidth = $toPageBody.children().width(),
+          toStartCss = {left: 'auto', width: pageBodyWidth},
+          toEndCss = {}
       
+      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
+
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({left: 'auto', width: pageBodyWidth})
+      $toPageBody.css(toStartCss)
       pageBodyWidth = pageBodyWidth * 2 - $toPageBody.prop('clientWidth')
-      $toPageBody.css({width: pageBodyWidth, x: pageBodyWidth}).transition({x: 0}, function() {
+      toStartCss = {width: pageBodyWidth}
+      toStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     overlayOutRight: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          prevPageBodyWidth = $fromPageBody.width()
+          prevPageBodyWidth = $fromPageBody.width(),
+          fromStartCss = {},
+          fromEndCss = {width: 'auto', left: 0}
 
-      $fromPageBody.transition({x: prevPageBodyWidth}, function() {
-        $fromPageBody.css({width: 'auto', left: 0, x: 0})
+      fromStartCss[transformName] = 'translate3d(' + prevPageBodyWidth + 'px, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0px, 0, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -675,22 +928,33 @@
     overlayInRight: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          pageBodyWidth = $toPageBody.children().width()
+          pageBodyWidth = $toPageBody.children().width(),
+          toStartCss = {right: 'auto', width: pageBodyWidth},
+          toEndCss = {}
+      
+      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
       
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({right: 'auto', width: pageBodyWidth})
+      $toPageBody.css(toStartCss)
       pageBodyWidth = pageBodyWidth * 2 - $toPageBody.prop('clientWidth')
-      $toPageBody.css({width: pageBodyWidth, x: 0 - pageBodyWidth}).transition({x: 0}, function() {
+      toStartCss = {width: pageBodyWidth}
+      toStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })      
     },
     overlayOutLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          prevPageBodyWidth = $fromPageBody.width()
+          prevPageBodyWidth = $fromPageBody.width(),
+          fromStartCss = {},
+          fromEndCss = {width: 'auto', right: 0}
 
-      $fromPageBody.transition({x: 0 - prevPageBodyWidth}, function() {
-        $fromPageBody.css({width: 'auto', right: 0, x: 0})
+      fromStartCss[transformName] = 'translate3d(' + (0 - prevPageBodyWidth) + 'px, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0px, 0, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -698,22 +962,33 @@
     overlayInUp: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          pageBodyHeight = $toPageBody.children().height()
+          pageBodyHeight = $toPageBody.children().height(),
+          toStartCss = {top: 'auto', height: pageBodyHeight},
+          toEndCss = {}
+      
+      toEndCss[transformName] = 'translate3d(0, 0px, 0)'
       
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({top: 'auto', height: pageBodyHeight})
+      $toPageBody.css(toStartCss)
       pageBodyHeight = pageBodyHeight * 2 - $toPageBody.prop('clientHeight')
-      $toPageBody.css({height: pageBodyHeight, y: pageBodyHeight}).transition({y: 0}, function() {
+      toStartCss = {height: pageBodyHeight}
+      toStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     overlayOutDown: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          prevPageBodyHeight = $fromPageBody.height()
+          prevPageBodyHeight = $fromPageBody.height(),
+          fromStartCss = {},
+          fromEndCss = {height: 'auto', top: 0}
 
-      $fromPageBody.transition({y: prevPageBodyHeight}, function() {
-        $fromPageBody.css({height: 'auto', top: 0, y: 0})
+      fromStartCss[transformName] = 'translate3d(0, ' + prevPageBodyHeight + 'px, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0px, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -721,22 +996,33 @@
     overlayInDown: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          pageBodyHeight = $toPageBody.children().height()
+          pageBodyHeight = $toPageBody.children().height(),
+          toStartCss = {bottom: 'auto', height: pageBodyHeight},
+          toEndCss = {}
+      
+      toEndCss[transformName] = 'translate(0, 0px)'
       
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({bottom: 'auto', height: pageBodyHeight})
+      $toPageBody.css(toStartCss)
       pageBodyHeight = pageBodyHeight * 2 - $toPageBody.prop('clientHeight')
-      $toPageBody.css({height: pageBodyHeight, y: 0 - pageBodyHeight}).transition({y: 0}, function() {
+      toStartCss = {height: pageBodyHeight}
+      toStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
     },
     overlayOutUp: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          prevPageBodyHeight = $fromPageBody.height()
+          prevPageBodyHeight = $fromPageBody.height(),
+          fromStartCss = {},
+          fromEndCss = {height: 'auto', bottom: 0}
 
-      $fromPageBody.transition({y: 0 - prevPageBodyHeight}, function() {
-        $fromPageBody.css({height: 'auto', bottom: 0, y: 0})
+      fromStartCss[transformName] = 'translate3d(0, ' + (0 - prevPageBodyHeight) + 'px, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0px, 0)'
+
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -744,13 +1030,18 @@
     revealInLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          pageBodyWidth = $toPageBody.children().width()
+          pageBodyWidth = $toPageBody.children().width(),
+          toStartCss = {left: 'auto', width: pageBodyWidth},
+          fromStartCss = {}
+      
+      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
       
       togglePagezIndex($toPage, $fromPage)
-      $toPageBody.css({left: 'auto', width: pageBodyWidth})
+      $toPageBody.css(toStartCss)
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
       $toPageBody.css({width: pageBodyWidth})
-      $fromPageBody.transition({x: 0 - pageBodyWidth}, function() {
+      fromStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
+      $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })      
@@ -758,10 +1049,13 @@
     revealOutRight: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          prevPageBodyWidth = $fromPageBody.width()
+          prevPageBodyWidth = $fromPageBody.width(),
+          toStartCss = {}
+
+      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition({x: 0}, function() {
+      $toPageBody.transition(toStartCss, function() {
         $fromPageBody.css({width: 'auto', left: 0})
         callback()
       })
@@ -769,13 +1063,16 @@
     revealInRight: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          pageBodyWidth = $toPageBody.children().width()
-      
+          pageBodyWidth = $toPageBody.children().width(),
+          toStartCss = {right: 'auto', width: pageBodyWidth},
+          fromStartCss = {}
+            
       togglePagezIndex($toPage, $fromPage)
-      $toPageBody.css({right: 'auto', width: pageBodyWidth})
+      $toPageBody.css(toStartCss)
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
       $toPageBody.css({width: pageBodyWidth})
-      $fromPageBody.transition({x: pageBodyWidth}, function() {
+      fromStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
+      $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })      
@@ -783,10 +1080,13 @@
     revealOutLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          prevPageBodyWidth = $fromPageBody.width()
+          prevPageBodyWidth = $fromPageBody.width(),
+          toStartCss = {}
+
+      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition({x: 0}, function() {
+      $toPageBody.transition(toStartCss, function() {
         $fromPageBody.css({width: 'auto', right: 0})
         callback()
       })
@@ -794,13 +1094,17 @@
     revealInUp: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          pageBodyHeight = $toPageBody.children().height()
+          pageBodyHeight = $toPageBody.children().height(),
+          toStartCss = {top: 'auto', height: pageBodyHeight},
+          fromStartCss = {}
+
+      fromStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
       
       togglePagezIndex($toPage, $fromPage)
-      $toPageBody.css({top: 'auto', height: pageBodyHeight})
+      $toPageBody.css(toStartCss)
       pageBodyHeight = $toPageBody.height() * 2 - $toPageBody.prop('clientHeight')
       $toPageBody.css({height: pageBodyHeight})
-      $fromPageBody.transition({y: 0 - pageBodyHeight}, function() {
+      $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })      
@@ -808,10 +1112,13 @@
     revealOutDown: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          prevPageBodyHeight = $fromPageBody.height()
+          prevPageBodyHeight = $fromPageBody.height(),
+          toStartCss = {}
+
+      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition({y: 0}, function() {
+      $toPageBody.transition(toStartCss, function() {
         $fromPageBody.css({height: 'auto', top: 0})
         callback()
       })
@@ -819,13 +1126,17 @@
     revealInDown: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          pageBodyHeight = $toPageBody.children().height()
+          pageBodyHeight = $toPageBody.children().height(),
+          toStartCss = {bottom: 'auto', height: pageBodyHeight},
+          fromStartCss = {}
+
+      fromStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
       
       togglePagezIndex($toPage, $fromPage)
-      $toPageBody.css({bottom: 'auto', height: pageBodyHeight})
+      $toPageBody.css(toStartCss)
       pageBodyHeight = $toPageBody.height() * 2 - $toPageBody.prop('clientHeight')
       $toPageBody.css({height: pageBodyHeight})
-      $fromPageBody.transition({y: pageBodyHeight}, function() {
+      $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })      
@@ -833,10 +1144,13 @@
     revealOutUp: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
-          prevPageBodyHeight = $fromPageBody.height()
+          prevPageBodyHeight = $fromPageBody.height(),
+          toStartCss = {}
+
+      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition({y: 0}, function() {
+      $toPageBody.transition(toStartCss, function() {
         $fromPageBody.css({height: 'auto', bottom: 0})
         callback()
       })
@@ -845,15 +1159,26 @@
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
           pageBodyWidth = $toPageBody.children().width(),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {left: 'auto', width: pageBodyWidth},
+          toEndCss = {},
+          fromStartCss = {}
       
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({left: 'auto', width: pageBodyWidth})
+      $toPageBody.css(toStartCss)
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
-      $toPageBody.css({width: pageBodyWidth, x: pageBodyWidth}).transition({x: 0}, function() {
+      
+      toStartCss = {width: pageBodyWidth}
+      toStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
+
+      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
+
+      fromStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
+
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
-      })      
-      $fromPageBody.transition({x: 0 - pageBodyWidth}, function() {
+      })
+      $fromPageBody.transition(fromStartCss, function() {
         ++isFinish == 2 && callback()
       })      
     },
@@ -861,14 +1186,22 @@
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
           prevPageBodyWidth = $fromPageBody.width(),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          fromStartCss = {},
+          fromEndCss = {width: 'auto', left: 0}
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition({x: 0}, function() {
+
+      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
+      fromStartCss[transformName] = 'translate3d(' + prevPageBodyWidth + 'px, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0px, 0, 0)'
+
+      $toPageBody.transition(toStartCss, function() {
         ++isFinish == 2 && callback()
       })
-      $fromPageBody.transition({x: prevPageBodyWidth}, function() {
-        $fromPageBody.css({width: 'auto', left: 0, x: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
     },
@@ -876,15 +1209,25 @@
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
           pageBodyWidth = $toPageBody.children().width(),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {right: 'auto', width: pageBodyWidth},
+          toEndCss = {},
+          fromStartCss = {}
       
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({right: 'auto', width: pageBodyWidth})
+      $toPageBody.css(toStartCss)
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
-      $toPageBody.css({width: pageBodyWidth, x: 0 - pageBodyWidth}).transition({x: 0}, function() {
+
+      toStartCss = {width: pageBodyWidth}
+      toStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
+      fromStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
+
+      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
+
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })      
-      $fromPageBody.transition({x: pageBodyWidth}, function() {
+      $fromPageBody.transition(fromStartCss, function() {
         ++isFinish == 2 && callback()
       })      
     },
@@ -892,14 +1235,21 @@
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
           prevPageBodyWidth = $fromPageBody.width(),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          fromStartCss = {},
+          fromEndCss = {width: 'auto', right: 0}
+
+      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
+      fromStartCss[transformName] = 'translate3d(' + (0 - prevPageBodyWidth) + 'px, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0px, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition({x: 0}, function() {
+      $toPageBody.transition(toStartCss, function() {
         ++isFinish == 2 && callback()
       })
-      $fromPageBody.transition({x: 0 - prevPageBodyWidth}, function() {
-        $fromPageBody.css({width: 'auto', right: 0, x: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
     },
@@ -907,15 +1257,24 @@
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
           pageBodyHeight = $toPageBody.children().height(),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {top: 'auto', height: pageBodyHeight},
+          toEndCss = {},
+          fromStartCss = {}
       
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({top: 'auto', height: pageBodyHeight})
+      $toPageBody.css(toStartCss)
       pageBodyHeight = $toPageBody.height() * 2 - $toPageBody.prop('clientHeight')
-      $toPageBody.css({height: pageBodyHeight, y: pageBodyHeight}).transition({y: 0}, function() {
+
+      toStartCss = {height: pageBodyHeight}
+      toStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0px, 0)'
+      fromStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
+
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })      
-      $fromPageBody.transition({y: 0 - pageBodyHeight}, function() {
+      $fromPageBody.transition(fromStartCss, function() {
         ++isFinish == 2 && callback()
       })      
     },
@@ -923,14 +1282,21 @@
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
           prevPageBodyHeight = $fromPageBody.height(),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          fromStartCss = {},
+          fromEndCss = {height: 'auto', top: 0}
+
+      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
+      fromStartCss[transformName] = 'translate3d(0, ' + prevPageBodyHeight + 'px, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition({y: 0}, function() {
+      $toPageBody.transition(toStartCss, function() {
         ++isFinish == 2 && callback()
       })
-      $fromPageBody.transition({y: prevPageBodyHeight}, function() {
-        $fromPageBody.css({height: 'auto', top: 0, y: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
     },
@@ -938,15 +1304,24 @@
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
           pageBodyHeight = $toPageBody.children().height(),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {bottom: 'auto', height: pageBodyHeight},
+          toEndCss = {},
+          fromStartCss = {}
       
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.css({bottom: 'auto', height: pageBodyHeight})
+      $toPageBody.css(toStartCss)
       pageBodyHeight = $toPageBody.height() * 2 - $toPageBody.prop('clientHeight')
-      $toPageBody.css({height: pageBodyHeight, y: 0 - pageBodyHeight}).transition({y: 0}, function() {
+
+      toStartCss = {height: pageBodyHeight}
+      toStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0px, 0)'
+      fromStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
+
+      $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
       })      
-      $fromPageBody.transition({y: pageBodyHeight}, function() {
+      $fromPageBody.transition(fromStartCss, function() {
         ++isFinish == 2 && callback()
       })      
     },
@@ -954,14 +1329,22 @@
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
           prevPageBodyHeight = $fromPageBody.height(),
-          isFinish = 0
+          isFinish = 0,
+          toStartCss = {},
+          fromStartCss = {},
+          fromEndCss = {height: 'auto', bottom: 0}
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition({y: 0}, function() {
+
+      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
+      fromStartCss[transformName] = 'translate3d(0, ' + (0 - prevPageBodyHeight) + 'px, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0px, 0)'
+
+      $toPageBody.transition(toStartCss, function() {
         ++isFinish == 2 && callback()
       })
-      $fromPageBody.transition({y: 0 - prevPageBodyHeight}, function() {
-        $fromPageBody.css({height: 'auto', bottom: 0, y: 0})
+      $fromPageBody.transition(fromStartCss, function() {
+        $fromPageBody.css(fromEndCss)
         ;++isFinish == 2 && callback()
       })
     }
