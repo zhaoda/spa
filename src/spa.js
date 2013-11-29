@@ -20,7 +20,6 @@
         .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; }\
         .spa-page-bg {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; }\
         .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; }\
-        .spa-transition {transition: 0.4s; -webkit-transition: 0.4s; -moz-transition: 0.4s; -o-transition: 0.4s; -ms-transition: 0.4s;}\
         .spa-scroll {overflow: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
         .spa-scroll-x {overflow-y: hidden;}\
         .spa-scroll-y {overflow-x: hidden;}\
@@ -313,6 +312,7 @@
   var transitPageAnimates = {},
       transitPageAnimatesName = {},
       transformName = 'transform',
+      transitionName = 'transition',
       transitionEndEvent = 'transitionend'
 
   ;(function() {
@@ -328,6 +328,7 @@
 
     for(t in transitions){
       if(el.style[t] !== undefined ) {
+        transitionName = t
         transformName = transitions[t][0]
         transitionEndEvent = transitions[t][1]
       }
@@ -341,9 +342,12 @@
 
     // 防止同时重绘
     setTimeout(function() {
-      $el.addClass('spa-transition').css(properties).emulateTransitionEnd(function() {
-        // 过渡动画结束后移除 .spa-transition
-        $el.removeClass('spa-transition')
+      properties[transitionName] = '0.4s'
+      $el.css(properties).emulateTransitionEnd(function() {
+        // 过渡动画结束后移除 transition
+        properties = {}
+        properties[transitionName] = ''
+        $el.css(properties)
         callback && callback()
       })
     }, 0)
@@ -433,8 +437,8 @@
           toStartCss = {opacity: 0},
           toEndCss = {opacity: 1}
 
-      toStartCss[transformName] = 'translate(100%, 0)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
@@ -447,8 +451,8 @@
           fromStartCss = {opacity: 0},
           fromEndCss = {opacity: 1}
 
-      fromStartCss[transformName] = 'translate(100%, 0)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -462,8 +466,8 @@
           toStartCss = {opacity: 0},
           toEndCss = {opacity: 1}
 
-      toStartCss[transformName] = 'translate(-100%, 0)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
@@ -476,8 +480,8 @@
           fromStartCss = {opacity: 0},
           fromEndCss = {opacity: 1}
 
-      fromStartCss[transformName] = 'translate(-100%, 0)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -491,8 +495,8 @@
           toStartCss = {opacity: 0},
           toEndCss = {opacity: 1}
 
-      toStartCss[transformName] = 'translate(0, 100%)'
-      toEndCss[transformName] = 'translate(0, 0%)'
+      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
@@ -505,8 +509,8 @@
           fromStartCss = {opacity: 0},
           fromEndCss = {opacity: 1}
 
-      fromStartCss[transformName] = 'translate(0, 100%)'
-      fromEndCss[transformName] = 'translate(0, 0%)'
+      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -520,8 +524,8 @@
           toStartCss = {opacity: 0},
           toEndCss = {opacity: 1}
 
-      toStartCss[transformName] = 'translate(0, -100%)'
-      toEndCss[transformName] = 'translate(0, 0%)'
+      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
@@ -534,8 +538,8 @@
           fromStartCss = {opacity: 0},
           fromEndCss = {opacity: 1}
 
-      fromStartCss[transformName] = 'translate(0, -100%)'
-      fromEndCss[transformName] = 'translate(0, 0%)'
+      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -549,8 +553,8 @@
           toStartCss = {},
           toEndCss = {}
 
-      toStartCss[transformName] = 'translate(100%, 0)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
@@ -563,8 +567,8 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      fromStartCss[transformName] = 'translate(100%, 0)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -578,8 +582,8 @@
           toStartCss = {},
           toEndCss = {}
 
-      toStartCss[transformName] = 'translate(-100%, 0)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
@@ -592,8 +596,8 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      fromStartCss[transformName] = 'translate(-100%, 0)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -607,8 +611,8 @@
           toStartCss = {},
           toEndCss = {}
 
-      toStartCss[transformName] = 'translate(0, 100%)'
-      toEndCss[transformName] = 'translate(0, 0%)'
+      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
@@ -621,8 +625,8 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      fromStartCss[transformName] = 'translate(0, 100%)'
-      fromEndCss[transformName] = 'translate(0, 0%)'
+      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -636,8 +640,8 @@
           toStartCss = {},
           toEndCss = {}
 
-      toStartCss[transformName] = 'translate(0, -100%)'
-      toEndCss[transformName] = 'translate(0, 0%)'
+      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
@@ -650,8 +654,8 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      fromStartCss[transformName] = 'translate(0, -100%)'
-      fromEndCss[transformName] = 'translate(0, 0%)'
+      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0%, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -668,11 +672,11 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      toStartCss[transformName] = 'translate(100%, 0)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
-      fromStartCss[transformName] = 'translate(-100%, 0)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
@@ -692,11 +696,11 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      toStartCss[transformName] = 'translate(-100%, 0)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
-      fromStartCss[transformName] = 'translate(100%, 0)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -716,11 +720,11 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      toStartCss[transformName] = 'translate(-100%, 0)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
-      fromStartCss[transformName] = 'translate(100%, 0)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -740,11 +744,11 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      toStartCss[transformName] = 'translate(100%, 0)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
-      fromStartCss[transformName] = 'translate(-100%, 0)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -764,11 +768,11 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      toStartCss[transformName] = 'translate(0, 100%)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
-      fromStartCss[transformName] = 'translate(0, -100%)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -788,11 +792,11 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      toStartCss[transformName] = 'translate(0, -100%)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
-      fromStartCss[transformName] = 'translate(0, 100%)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -812,11 +816,11 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      toStartCss[transformName] = 'translate(0, -100%)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
-      fromStartCss[transformName] = 'translate(0, 100%)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -836,11 +840,11 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      toStartCss[transformName] = 'translate(0, 100%)'
-      toEndCss[transformName] = 'translate(0%, 0)'
+      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
-      fromStartCss[transformName] = 'translate(0, -100%)'
-      fromEndCss[transformName] = 'translate(0%, 0)'
+      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromEndCss[transformName] = 'translate3d(0%, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -857,8 +861,8 @@
           toStartCss = {},
           toEndCss = {}
 
-      toStartCss[transformName] = 'scale(0, 0)'
-      toEndCss[transformName] = 'scale(1, 1)'
+      toStartCss[transformName] = 'scale3d(0, 0, 0)'
+      toEndCss[transformName] = 'scale3d(1, 1, 1)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
@@ -871,8 +875,8 @@
           fromStartCss = {},
           fromEndCss = {}
 
-      fromStartCss[transformName] = 'scale(0, 0)'
-      fromEndCss[transformName] = 'scale(1, 1)'
+      fromStartCss[transformName] = 'scale3d(0, 0, 0)'
+      fromEndCss[transformName] = 'scale3d(1, 1, 1)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -887,13 +891,13 @@
           toStartCss = {left: 'auto', width: pageBodyWidth},
           toEndCss = {}
       
-      toEndCss[transformName] = 'translate(0px, 0)'
+      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss)
       pageBodyWidth = pageBodyWidth * 2 - $toPageBody.prop('clientWidth')
       toStartCss = {width: pageBodyWidth}
-      toStartCss[transformName] = 'translate(' + pageBodyWidth + 'px, 0)'
+      toStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
@@ -905,8 +909,8 @@
           fromStartCss = {},
           fromEndCss = {width: 'auto', left: 0}
 
-      fromStartCss[transformName] = 'translate(' + prevPageBodyWidth + 'px, 0)'
-      fromEndCss[transformName] = 'translate(0px, 0)'
+      fromStartCss[transformName] = 'translate3d(' + prevPageBodyWidth + 'px, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0px, 0, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -921,13 +925,13 @@
           toStartCss = {right: 'auto', width: pageBodyWidth},
           toEndCss = {}
       
-      toEndCss[transformName] = 'translate(0px, 0)'
+      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
       
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss)
       pageBodyWidth = pageBodyWidth * 2 - $toPageBody.prop('clientWidth')
       toStartCss = {width: pageBodyWidth}
-      toStartCss[transformName] = 'translate(' + (0 - pageBodyWidth) + 'px, 0)'
+      toStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })      
@@ -939,8 +943,8 @@
           fromStartCss = {},
           fromEndCss = {width: 'auto', right: 0}
 
-      fromStartCss[transformName] = 'translate(' + (0 - prevPageBodyWidth) + 'px, 0)'
-      fromEndCss[transformName] = 'translate(0px, 0)'
+      fromStartCss[transformName] = 'translate3d(' + (0 - prevPageBodyWidth) + 'px, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0px, 0, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -955,13 +959,13 @@
           toStartCss = {top: 'auto', height: pageBodyHeight},
           toEndCss = {}
       
-      toEndCss[transformName] = 'translate(0, 0px)'
+      toEndCss[transformName] = 'translate3d(0, 0px, 0)'
       
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.css(toStartCss)
       pageBodyHeight = pageBodyHeight * 2 - $toPageBody.prop('clientHeight')
       toStartCss = {height: pageBodyHeight}
-      toStartCss[transformName] = 'translate(0, ' + pageBodyHeight + 'px)'
+      toStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
@@ -973,8 +977,8 @@
           fromStartCss = {},
           fromEndCss = {height: 'auto', top: 0}
 
-      fromStartCss[transformName] = 'translate(0, ' + prevPageBodyHeight + 'px)'
-      fromEndCss[transformName] = 'translate(0, 0px)'
+      fromStartCss[transformName] = 'translate3d(0, ' + prevPageBodyHeight + 'px, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0px, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -995,7 +999,7 @@
       $toPageBody.css(toStartCss)
       pageBodyHeight = pageBodyHeight * 2 - $toPageBody.prop('clientHeight')
       toStartCss = {height: pageBodyHeight}
-      toStartCss[transformName] = 'translate(0, ' + (0 - pageBodyHeight) + 'px)'
+      toStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
         callback()
       })
@@ -1007,8 +1011,8 @@
           fromStartCss = {},
           fromEndCss = {height: 'auto', bottom: 0}
 
-      fromStartCss[transformName] = 'translate(0, ' + (0 - prevPageBodyHeight) + 'px)'
-      fromEndCss[transformName] = 'translate(0, 0px)'
+      fromStartCss[transformName] = 'translate3d(0, ' + (0 - prevPageBodyHeight) + 'px, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0px, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
@@ -1023,13 +1027,13 @@
           toStartCss = {left: 'auto', width: pageBodyWidth},
           fromStartCss = {}
       
-      toStartCss[transformName] = 'translate(0px, 0)'
+      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
       
       togglePagezIndex($toPage, $fromPage)
       $toPageBody.css(toStartCss)
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
       $toPageBody.css({width: pageBodyWidth})
-      fromStartCss[transformName] = 'translate(' + (0 - pageBodyWidth) + 'px, 0)'
+      fromStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -1041,7 +1045,7 @@
           prevPageBodyWidth = $fromPageBody.width(),
           toStartCss = {}
 
-      toStartCss[transformName] = 'translate(0px, 0)'
+      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1060,7 +1064,7 @@
       $toPageBody.css(toStartCss)
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
       $toPageBody.css({width: pageBodyWidth})
-      fromStartCss[transformName] = 'translate(' + pageBodyWidth + 'px, 0)'
+      fromStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
@@ -1072,7 +1076,7 @@
           prevPageBodyWidth = $fromPageBody.width(),
           toStartCss = {}
 
-      toStartCss[transformName] = 'translate(0px, 0)'
+      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1087,7 +1091,7 @@
           toStartCss = {top: 'auto', height: pageBodyHeight},
           fromStartCss = {}
 
-      fromStartCss[transformName] = 'translate(0, ' + (0 - pageBodyHeight) + 'px)'
+      fromStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
       
       togglePagezIndex($toPage, $fromPage)
       $toPageBody.css(toStartCss)
@@ -1104,7 +1108,7 @@
           prevPageBodyHeight = $fromPageBody.height(),
           toStartCss = {}
 
-      toStartCss[transformName] = 'translate(0, 0px)'
+      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1119,7 +1123,7 @@
           toStartCss = {bottom: 'auto', height: pageBodyHeight},
           fromStartCss = {}
 
-      fromStartCss[transformName] = 'translate(0, ' + pageBodyHeight + 'px)'
+      fromStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
       
       togglePagezIndex($toPage, $fromPage)
       $toPageBody.css(toStartCss)
@@ -1136,7 +1140,7 @@
           prevPageBodyHeight = $fromPageBody.height(),
           toStartCss = {}
 
-      toStartCss[transformName] = 'translate(0, 0px)'
+      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1158,11 +1162,11 @@
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
       
       toStartCss = {width: pageBodyWidth}
-      toStartCss[transformName] = 'translate(' + pageBodyWidth + 'px, 0)'
+      toStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
 
-      toEndCss[transformName] = 'translate(0px, 0)'
+      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
 
-      fromStartCss[transformName] = 'translate(' + (0 - pageBodyWidth) + 'px, 0)'
+      fromStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
 
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
@@ -1182,9 +1186,9 @@
 
       togglePagezIndex($fromPage, $toPage)
 
-      toStartCss[transformName] = 'translate(0px, 0)'
-      fromStartCss[transformName] = 'translate(' + prevPageBodyWidth + 'px, 0)'
-      fromEndCss[transformName] = 'translate(0px, 0)'
+      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
+      fromStartCss[transformName] = 'translate3d(' + prevPageBodyWidth + 'px, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0px, 0, 0)'
 
       $toPageBody.transition(toStartCss, function() {
         ++isFinish == 2 && callback()
@@ -1208,10 +1212,10 @@
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
 
       toStartCss = {width: pageBodyWidth}
-      toStartCss[transformName] = 'translate(' + (0 - pageBodyWidth) + 'px, 0)'
-      fromStartCss[transformName] = 'translate(' + pageBodyWidth + 'px, 0)'
+      toStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
+      fromStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
 
-      toEndCss[transformName] = 'translate(0px, 0)'
+      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
 
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
@@ -1229,9 +1233,9 @@
           fromStartCss = {},
           fromEndCss = {width: 'auto', right: 0}
 
-      toStartCss[transformName] = 'translate(0px, 0)'
-      fromStartCss[transformName] = 'translate(' + (0 - prevPageBodyWidth) + 'px, 0)'
-      fromEndCss[transformName] = 'translate(0px, 0)'
+      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
+      fromStartCss[transformName] = 'translate3d(' + (0 - prevPageBodyWidth) + 'px, 0, 0)'
+      fromEndCss[transformName] = 'translate3d(0px, 0, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1256,9 +1260,9 @@
       pageBodyHeight = $toPageBody.height() * 2 - $toPageBody.prop('clientHeight')
 
       toStartCss = {height: pageBodyHeight}
-      toStartCss[transformName] = 'translate(0, ' + pageBodyHeight + 'px)'
-      toEndCss[transformName] = 'translate(0, 0px)'
-      fromStartCss[transformName] = 'translate(0, ' + (0 - pageBodyHeight) + 'px)'
+      toStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0px, 0)'
+      fromStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
 
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
@@ -1276,9 +1280,9 @@
           fromStartCss = {},
           fromEndCss = {height: 'auto', top: 0}
 
-      toStartCss[transformName] = 'translate(0, 0px)'
-      fromStartCss[transformName] = 'translate(0, ' + prevPageBodyHeight + 'px)'
-      fromEndCss[transformName] = 'translate(0, 0px)'
+      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
+      fromStartCss[transformName] = 'translate3d(0, ' + prevPageBodyHeight + 'px, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1303,9 +1307,9 @@
       pageBodyHeight = $toPageBody.height() * 2 - $toPageBody.prop('clientHeight')
 
       toStartCss = {height: pageBodyHeight}
-      toStartCss[transformName] = 'translate(0, ' + (0 - pageBodyHeight) + 'px)'
-      toEndCss[transformName] = 'translate(0, 0px)'
-      fromStartCss[transformName] = 'translate(0, ' + pageBodyHeight + 'px)'
+      toStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
+      toEndCss[transformName] = 'translate3d(0, 0px, 0)'
+      fromStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
 
       $toPageBody.css(toStartCss).transition(toEndCss, function() {
         ++isFinish == 2 && callback()
@@ -1325,9 +1329,9 @@
 
       togglePagezIndex($fromPage, $toPage)
 
-      toStartCss[transformName] = 'translate(0, 0px)'
-      fromStartCss[transformName] = 'translate(0, ' + (0 - prevPageBodyHeight) + 'px)'
-      fromEndCss[transformName] = 'translate(0, 0px)'
+      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
+      fromStartCss[transformName] = 'translate3d(0, ' + (0 - prevPageBodyHeight) + 'px, 0)'
+      fromEndCss[transformName] = 'translate3d(0, 0px, 0)'
 
       $toPageBody.transition(toStartCss, function() {
         ++isFinish == 2 && callback()
