@@ -7,14 +7,14 @@ define({
     </ul>\
   </div>\
   ',
-  init: function() {
+  init: function(pageData) {
     var $view = this
     
-    $('.container', $view).trigger('scroll.spa')
+    $('.container', $view).trigger('spa:scroll')
   },
-  beforeopen: function() {
+  beforeopen: function(pageData) {
     var $view = this,
-        pushData = $view.data('pushData.spa'),
+        pushData = pageData.pushData,
         animate = pushData.animate || 'default'
 
     $('.animate', $view).text(animate)

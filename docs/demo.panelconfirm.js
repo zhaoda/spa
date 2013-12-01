@@ -4,23 +4,26 @@ define({
     <button type="button" class="btn btn-danger btn-lg btn-block">取消</button>\
   </div>\
   ',
-  init: function() {
+  init: function(panelData) {
     var $view = this,
         $dialog = $('.panel', $view)
     
-    $('.container', $view).trigger('scroll.spa')
+    $('.container', $view).trigger('spa:scroll')
         
-    $view.on('click', 'button', function() {
-      $view.trigger('closepanel.spa')
+    $view.on('click touchstart', 'button', function() {
+      $view.trigger('spa:closepanel')
+
+      event.stopPropagation()
+      event.preventDefault()
     })
     
   },
-  beforeopen: function() {
+  beforeopen: function(panelData) {
     var $view = this
     
     $('.spa-page-bg', $view).css({opacity: 0}).transition({opacity: 0.6})
   },
-  beforeclose: function() {
+  beforeclose: function(panelData) {
     var $view = this
     
     $('.spa-page-bg', $view).transition({opacity: 0})

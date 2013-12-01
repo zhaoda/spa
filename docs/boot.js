@@ -16,7 +16,7 @@ var pageHome = {
   view: function() {
     var $page = this
     requirejs(['home'], function(viewData) {
-      $page.trigger('initpage.spa', viewData)
+      $page.trigger('spa:initpage', viewData)
     })
   }
 }
@@ -29,7 +29,7 @@ var demoNewPage = {
   view: function() {
     var $page = this
     requirejs(['demo.newpage'], function(viewData) {
-      $page.trigger('initpage.spa', viewData)
+      $page.trigger('spa:initpage', viewData)
     })
   }
 }
@@ -42,13 +42,13 @@ var demoTransitPage = {
   view: function() {
     var $page = this
     requirejs(['demo.transitpage'], function(viewData) {
-      $page.trigger('initpage.spa', viewData)
+      $page.trigger('spa:initpage', viewData)
     })
   }
 }
 
 
-$doc.trigger('route.spa', [pageHome, demoNewPage, demoTransitPage])
+$doc.trigger('spa:route', [pageHome, demoNewPage, demoTransitPage])
 
 // 导航菜单面板
 var panelMenu = {
@@ -58,7 +58,7 @@ var panelMenu = {
   view: function() {
     var $panel = this
     requirejs(['menu'], function(menuView) {
-      $panel.trigger('initpage.spa', menuView)
+      $panel.trigger('spa:initpage', menuView)
     })
   }
 }
@@ -71,7 +71,7 @@ var demoPanelSidemenu = {
   view: function() {
     var $panel = this
     requirejs(['demo.panelsidemenu'], function(viewData) {
-      $panel.trigger('initpanel.spa', viewData)
+      $panel.trigger('spa:initpanel', viewData)
     })
   }
 }
@@ -84,7 +84,7 @@ var demoPanelAlert = {
   view: function() {
     var $panel = this
     requirejs(['demo.panelalert'], function(viewData) {
-      $panel.trigger('initpanel.spa', viewData)
+      $panel.trigger('spa:initpanel', viewData)
     })
   }
 }
@@ -97,7 +97,7 @@ var demoPanelConfirm = {
   view: function() {
     var $panel = this
     requirejs(['demo.panelconfirm'], function(viewData) {
-      $panel.trigger('initpanel.spa', viewData)
+      $panel.trigger('spa:initpanel', viewData)
     })
   }
 }
@@ -110,14 +110,14 @@ var demoPanelTransit = {
   view: function() {
     var $panel = this
     requirejs(['demo.paneltransit'], function(viewData) {
-      $panel.trigger('initpanel.spa', viewData)
+      $panel.trigger('spa:initpanel', viewData)
     })
   }
 }
 
-$doc.trigger('panel.spa', [panelMenu, demoPanelSidemenu, demoPanelAlert, demoPanelConfirm, demoPanelTransit])
+$doc.trigger('spa:panel', [panelMenu, demoPanelSidemenu, demoPanelAlert, demoPanelConfirm, demoPanelTransit])
 
 
 $(function() {
-  $doc.trigger('boot.spa')
+  $doc.trigger('spa:boot')
 })

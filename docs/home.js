@@ -19,7 +19,7 @@ define({
       来快速构建你的WebApp；\
       </p>\
       <p>\
-      SPA依赖<a href="http://jquery.com/" target="_blank">jQuery</a>进行DOM操作，\
+      SPA依赖<a href="http://jquery.com/" target="_blank">jQuery</a>或<a href="http://zeptojs.com/" target="_blank">Zepto</a>，\
       并且每个视图可以通过<a href="http://requirejs.org/" target="_blank">RequireJS</a>、<a href="http://seajs.org/docs/" target="_blank">Sea.js</a>等CommonJS解决方案或者自定义的方式进行模块化组织、异步加载；\
       </p>\
       <p>\
@@ -87,18 +87,18 @@ var pageHome = {\n\
   view: function() {\n\
     var $page = this\n\
     requirejs(["home"], function(viewData) {\n\
-      $page.trigger("initview.spa", viewData)\n\
+      $page.trigger("spa:initview", viewData)\n\
     })\n\
   }\n\
 }\n\
 \n\
-$doc.trigger("route.spa", [pageHome])\n\
+$doc.trigger("spa:route", [pageHome])\n\
       </pre>\
       <p>\
-      除了用户操作，还可以通过<code>navigate.spa</code>事件主动进行路由请求。\
+      除了用户操作，还可以通过<code>spa:navigate</code>事件主动进行路由请求。\
       </p>\
       <pre>\
-$doc.trigger("navigate.spa", {\n\
+$doc.trigger("spa:navigate", {\n\
   hash: "go/to/some/pageview"\n\
 })\
       </pre>\
@@ -137,12 +137,12 @@ var demoNewPage = {\n\
   view: function() {\n\
     var $page = this\n\
     requirejs(["demo.newpage"], function(viewData) {\n\
-      $page.trigger("initview.spa", viewData)\n\
+      $page.trigger("spa:initview", viewData)\n\
     })\n\
   }\n\
 }\n\
 \n\
-$doc.trigger("route.spa", [demoNewPage])\n\
+$doc.trigger("spa:route", [demoNewPage])\n\
       </pre>\
       <h3>面板视图</h3>\
       <p>\
@@ -150,7 +150,7 @@ $doc.trigger("route.spa", [demoNewPage])\n\
       </p>\
       <pre>\
 //打开面板\n\
-$doc.trigger("openpanel.spa", [<em>panelid</em>, <em>pushData</em>])\n\
+$doc.trigger("spa:openpanel", [<em>panelid</em>, <em>pushData</em>])\n\
       </pre>\
       <p>\
       面板视图的容器结构是在页面视图容器结构的基础上进行扩展；\
@@ -179,7 +179,7 @@ var demoPanelSidemenu = {\n\
   view: function() {\n\
     var $panel = this\n\
     requirejs(["demo.panelsidemenu"], function(viewData) {\n\
-      $panel.trigger("initpanel.spa", viewData)\n\
+      $panel.trigger("spa:initpanel", viewData)\n\
     })\n\
   }\n\
 }\n\
@@ -192,7 +192,7 @@ var demoPanelAlert = {\n\
   view: function() {\n\
     var $panel = this\n\
     requirejs(["demo.panelalert"], function(viewData) {\n\
-      $panel.trigger("initpanel.spa", viewData)\n\
+      $panel.trigger("spa:initpanel", viewData)\n\
     })\n\
   }\n\
 }\n\
@@ -205,16 +205,16 @@ var demoPanelConfirm = {\n\
   view: function() {\n\
     var $panel = this\n\
     requirejs(["demo.panelconfirm"], function(viewData) {\n\
-      $panel.trigger("initpanel.spa", viewData)\n\
+      $panel.trigger("spa:initpanel", viewData)\n\
     })\n\
   }\n\
 }\n\
 \n\
 //添加面板\n\
-$doc.trigger("panel.spa", [demoPanelSidemenu, demoPanelAlert, demoPanelConfirm])\n\
+$doc.trigger("spa:panel", [demoPanelSidemenu, demoPanelAlert, demoPanelConfirm])\n\
 \n\
 //点击按钮打开面板\n\
-$doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu, demoPanelAlert, demoPanelConfirm\n\
+$doc.trigger("spa:openpanel", [<em>panelid</em>]) //panelid = demoPanelSidemenu, demoPanelAlert, demoPanelConfirm\n\
       </pre>\
       <h3>转换动画</h3>\
       <p>\
@@ -222,7 +222,7 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
       其中有12组动画是只支持面板视图，比如<code>overlayInUp & overlayOutDown</code>，\
       </p>\
       <p>\
-      可以通过<code>$doc.trigger("addTransitPageAnimates.spa", <em>Animates</em>)</code>添加自定义的视图转换动画；\
+      可以通过<code>$doc.trigger("spa:addTransitPageAnimates", <em>Animates</em>)</code>添加自定义的视图转换动画；\
       </p>\
       <p>\
       如果视图通过异步加载，将触发遮罩层和loading动画（可自定义）；\
@@ -348,7 +348,7 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
     </div>\
   </div>\
   ',
-  init: function() {
+  init: function(pageData) {
     var $view = this
 
     // 获取hash
@@ -364,7 +364,7 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
       var $btn = $(this),
           panelid = $btn.attr('data-panel')
       
-      $doc.trigger('openpanel.spa', [panelid])
+      $doc.trigger('spa:openpanel', [panelid])
     })
 
     $view.on('click', '.btn-transitpage', function(event) {
@@ -373,7 +373,7 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
           animate = $btn.attr('data-animate'),
           hash = getHash($btn.attr('href'))
       
-      $doc.trigger('navigate.spa', {hash: hash, pushData: {animate: animate}})
+      $doc.trigger('spa:navigate', {hash: hash, pushData: {animate: animate}})
     })
 
     $view.on('click', '.btn-transitpanel', function(event) {
@@ -381,9 +381,9 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
       var $btn = $(this),
           animate = $btn.attr('data-animate')
       
-      $doc.trigger('openpanel.spa', ['demoPanelTransit', {animate: animate}])
+      $doc.trigger('spa:openpanel', ['demoPanelTransit', {animate: animate}])
     })
     
-    $('.page-container-navbar', $view).trigger('scroll.spa')
+    $('.page-container-navbar', $view).trigger('spa:scroll')
   }
 })

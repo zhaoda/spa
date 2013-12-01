@@ -1,5 +1,5 @@
 /*!
- * SPA v0.2.1
+ * SPA v0.3.0
  * A webapp framework for routing control and view transitions
  * Copyright 2013 zhaoda <http://zhaoda.net>
  * Licensed under MIT https://raw.github.com/zhaoda/spa/master/LICENSE
@@ -12,16 +12,47 @@
   'use strict';
 
   var $win = $(window),
+      // $(document)
       $doc = $(document),
+      // $(document.body)
       $body,
+      // 浏览器地址栏
       location = window.location,
+      // 浏览器历史记录
       history = window.history,
+      // popstate事件state数据中转
+      historystate,
+      // 框架是否已经启动
+      hasBoot = false,
+      // 页面视图定义集合
       routes = {},
+      // 面板视图定义集合
+      panels = {},
+      // 路由请求历史
+      hashhistory = [],
+      // 视图默认z-index
       pagezIndex = 2000,
+      // 前一个视图z-index
       prevPagezIndex = 2001,
+      // 当前视图z-index
       curPagezIndex = 2002,
       // 缓存视图数量，默认0缓存全部
       viewcachecount = 0,
+      // 页面视图缓存
+      pagescache = {},
+      // 面板视图缓存
+      panelscache = {},
+      // 视图顺序缓存
+      viewscache = [],
+      // 视图数据
+      viewsdata = {},
+      // 透明遮罩层
+      $cover,
+      // loading遮罩层
+      $loader,
+      // 当前视图
+      $curPage,
+      // 框架样式
       viewStyle = 'body {position: relative; margin: 0; padding: 0; width: 100%; overflow: hidden;}\
         .spa-fullscreen {position: absolute; left: 0; top: 0; margin: 0; padding: 0; width: 100%; visibility: hidden; overflow: hidden; z-index: -1; }\
         .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; }\
@@ -30,9 +61,11 @@
         .spa-scroll {overflow: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
         .spa-scroll-x {overflow-y: hidden;}\
         .spa-scroll-y {overflow-x: hidden;}\
-        .spa-cover {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; z-index: 5000; }\
-        .spa-loader {position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; overflow: hidden; z-index: 5001; }',
+        .spa-cover {display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; z-index: 5000; }\
+        .spa-loader {display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; overflow: hidden; z-index: 5001; }',
+      // loading层元素
       loaderBody = '<div class="spa-loader-animate"><span></span><span></span><span></span></div>',
+      // loading层样式
       loaderStyle = '.spa-loader .spa-loader-animate {position: absolute; left: 50%; top: 50%; margin: -12px 0 0 -65px; }\
         .spa-loader .spa-loader-animate span { display: inline-block; vertical-align: middle; width: 10px; height: 10px; margin: 0 10px; background: black; border-radius: 50px; -webkit-animation: loader 0.9s infinite alternate; animation: loader 0.9s infinite alternate; }\
         .spa-loader .spa-loader-animate span:nth-of-type(2) { -webkit-animation-delay: 0.3s; -moz-animation-delay: 0.3s; }\
@@ -50,7 +83,7 @@
    * 插入样式
    */
   
-  $doc.on('addstyle.spa', function(event, css) {
+  $doc.on('spa:addstyle', function(event, css) {
     $('<style type="text/css">' + css + '</style>').appendTo($('head'))
   })
   
@@ -58,27 +91,23 @@
   /*
    * 全屏模式
    */
-  
-  $win.on('adjustfullscreen.spa resize orientationchange', function(event) {
-    var $currentTarget = $(event.currentTarget),
-        requestID = $currentTarget.data('adjustfullscreenRequestID')
-        
-    function adjust() {
-      var $fullscreen = $currentTarget.data('$fullscreen'),
-          winHeight = Math.max($win.height(), window.innerHeight),
-          winWidth = Math.max($win.width(), window.innerWidth)
-          
-      if(!$fullscreen) {
+
+  ;(function() {
+    var requestID,
+        winHeight,
+        winWidth,
         $fullscreen = $('<div class="spa-fullscreen"></div>').prependTo($body)
-        $currentTarget.data('$fullscreen', $fullscreen)
-      }
-      
-      $fullscreen.css({height: winHeight * 2})
-      //收起iphone safari的地址栏
+    
+    var adjust = function() {
+      winHeight = Math.max($win.height(), window.innerHeight),
+      winWidth = Math.max($win.width(), window.innerWidth)
+            
+      // 撑高body，收起iphone safari的地址栏
+      $fullscreen.css({height: winHeight * 2})      
       window.scrollTo(0, 0)
       
       //缓存window全屏时的高度
-      $win.data('innerHeight') || $win.data({innerHeight: window.innerHeight})
+      $body.data('innerHeight', window.innerHeight)
       
       winHeight = Math.max($win.height(), window.innerHeight)
       
@@ -96,20 +125,21 @@
       }
     }
     
-    if(requestID) {
-      cancelAnimationFrame(requestID)
-      $currentTarget.removeData('adjustfullscreenRequestID')
-    } else {
-      $currentTarget.data('fullpageRequestID', requestAnimationFrame(adjust))
-    }
-  })
-  
+    $win.on('spa:adjustfullscreen resize orientationchange', function(event) {
+      if(requestID !== undefined) {
+        cancelAnimationFrame(requestID)
+        requestID = undefined
+      }
+      requestID = requestAnimationFrame(adjust)
+    })  
+  })()
+    
   
   /*
    * scrollfix
    */
   
-  $doc.on('scroll.spa', function(event, options) {
+  $doc.on('spa:scroll', function(event, options) {
     var $target = $(event.target),
         direction = (options && options.direction) || ''
     
@@ -120,8 +150,8 @@
     var $target = $(event.currentTarget),
         scrollTop = $target.scrollTop(),
         scrollLeft = $target.scrollLeft(),
-        height = $target.innerHeight(),
-        width = $target.innerWidth(),
+        height = $target.height(),
+        width = $target.width(),
         scrollHeight = $target.prop('scrollHeight'),
         scrollWidth = $target.prop('scrollWidth')
     
@@ -162,10 +192,10 @@
    * 阻塞body的滚动条
    */
   $win.on('scroll', function(event) {
-    var innerHeight = $win.data('innerHeight')
+    var innerHeight = $body.data('innerHeight')
     
-    if(innerHeight && innerHeight != window.innerHeight) {
-      $win.trigger('adjustfullscreen.spa')
+    if(innerHeight && innerHeight !== window.innerHeight) {
+      $win.trigger('spa:adjustfullscreen')
     }
   })
 
@@ -180,49 +210,52 @@
   }
   
   $win.on('popstate', function(event) {
-    if($doc.data('boot.spa')) {
-      //在页面加载和转场过程中，阻止路由请求
-      var $cover = $win.data('cover.spa'),
-          $loader = $win.data('cover.spa')
-      if(($cover && $cover.css('display') == 'block') || ($loader && $loader.css('display') == 'block')) {
-        return false
-      }
-      
-      var $curPage = $win.data('curPage.spa')
-      
-      //如果当前页面是面板,则先收起之前的面板，再打开新页面
-      if($curPage && $curPage.hasClass('spa-panel')) {
-        var $prevPage = $curPage.data('prevPage.spa')
-        
-        $prevPage.trigger('openpage.spa')
-        
-        return false
-      }
-      
-      var hashhistory = $win.data('hashhistory.spa') || [],
-          hash = getHash()
-          
-      if(!hashhistory.length || hashhistory[hashhistory.length - 1] != hash) {
-        hashhistory.push(hash)
-        $win.data('hashhistory.spa', hashhistory)
-        
-        var pagescache = $win.data('pagescache.spa') ||　{},
-            $page = pagescache[hash],
-            pushData = event.state || {}
-        
-        if($win.data('pushData.spa')) {
-          pushData = $win.data('pushData.spa')
-          $win.data('pushData.spa', null)
-        }
-                       
-        if($page) {
-          $page.data('oldpushData.spa', $page.data('pushData.spa'))
-          $page.data('pushData.spa', pushData)
-          $page.trigger('openpage.spa')
-        } else {
-          $doc.trigger('createpage.spa', {hash: hash, pushData: pushData})
-        }
+    // 框架启动前阻止路由请求
+    if(!hasBoot) return
 
+    // 在页面加载和转场过程中阻止路由请求
+    if(($cover && $cover.css('display') === 'block') || ($loader && $loader.css('display') === 'block')) {
+      return false
+    }
+    
+    //如果当前页面是面板，则先收起之前的面板，再打开新页面
+    if($curPage && $curPage.hasClass('spa-panel')) {
+      var curPageId = $curPage.data('id'),
+          curPageData = viewsdata[curPageId],
+          $prevPage = curPageData.prevPage
+      
+      $prevPage.trigger('spa:openpage')
+      
+      return false
+    }
+    
+    var hash = getHash()
+    
+    // 如果当前路由请求和上一次路由请求不一样
+    // 则激活当前路由请求
+    if(!hashhistory.length || hashhistory[hashhistory.length - 1] !== hash) {
+      hashhistory.push(hash)
+      
+      var $page = pagescache[hash],
+          pushData = event.state || {}
+      
+      // 如果有中转的state数据，则优先使用，并清除
+      if(historystate) {
+        pushData = historystate
+        historystate = undefined
+      }
+                     
+      if($page) {
+        var pageId = $page.data('id'),
+            pageData = viewsdata[pageId]
+
+        // 更新pushData
+        pageData.oldpushData = pageData.pushData
+        pageData.pushData = pushData
+
+        $page.trigger('spa:openpage')
+      } else {
+        $doc.trigger('spa:createpage', {hash: hash, pushData: pushData})
       }
     }
   })
@@ -265,30 +298,28 @@
     return '^' + route + '$'
   }
   
-  $doc.on('route.spa', function(event, options) {
+  $doc.on('spa:route', function(event, options) {
     var args = Array.prototype.slice.call(arguments, 1)
     if(args.length > 1) {
       $.each(args, function(i, route) {
-        $doc.trigger('route.spa', route)
+        $doc.trigger('spa:route', route)
       })
       
       return false
     }
     
-    var routes = $win.data('routes.spa') || {},
-        route = options.route || ''
+    var route = options.route || ''
     
     if(!isRegExp(route)) {
       route = _routeToRegExp(route)
     }
     
-    //页面不允许使用面板转场动画
+    // 页面视图不允许使用面板视图转场动画
     if(options.animate && !$.isFunction(options.animate) && isPanelAnimate(options.animate)) {
       options.animate = ''
     }
     
     routes[route] = $.extend({}, defaultPageOptions, options)
-    $win.data('routes.spa', routes)
   })
   
   
@@ -310,10 +341,17 @@
 
   //切换容器的z-index
   function togglePagezIndex($fromPage, $toPage) {
-    $fromPage.data('prevPage.spa') && $fromPage.data('prevPage.spa').css({zIndex: pagezIndex})
-    $toPage.data('prevPage.spa') && $toPage.data('prevPage.spa').css({zIndex: pagezIndex})
-    $fromPage.css({zIndex: prevPagezIndex})
+    var fromPageData = viewsdata[$fromPage.data('id')],
+        toPageData = viewsdata[$toPage.data('id')]
+
+    fromPageData && fromPageData.prevPage && fromPageData.prevPage.css({zIndex: pagezIndex})
+    toPageData.prevPage && toPageData.prevPage.css({zIndex: pagezIndex})
+    $fromPage.css({zIndex: prevPagezIndex/*, 'pointer-events': 'none'*/})
     $toPage.css({zIndex: curPagezIndex})
+    // 防止事件点击穿透
+    // setTimeout(function() {
+    //   $toPage.css({'pointer-events': 'auto'})
+    // }, 100)
   }
     
   var transitPageAnimates = {},
@@ -324,11 +362,11 @@
 
   ;(function() {
     var transitions = {
-      'transition': ['transform', 'transitionend'],
-      'WebkitTransition': ['WebkitTransform', 'webkitTransitionEnd'],
-      'MSTransition': ['MSTransform', 'msTransitionEnd'],
-      'MozTransition': ['MozTransform', 'transitionend'],
-      'OTransition': ['OTransform', 'transitionend'],
+      '-webkit-transition': ['-webkit-transform', 'webkitTransitionEnd'],
+      '-moz-transition': ['-moz-transform', 'transitionend'],
+      '-ms-transition': ['-ms-transform', 'msTransitionEnd'],
+      '-o-transition': ['-o-transform', 'oTransitionEnd'],
+      'transition': ['transform', 'transitionend']
     },
     el = $('<div></div>').get(0),
     t
@@ -396,7 +434,7 @@
   }
     
   //添加转场动画
-  $doc.on('addTransitPageAnimates.spa', function(event, options) {
+  $doc.on('spa:addTransitPageAnimates', function(event, options) {
     var names = []
     
     $.each(options, function(name, fn) {
@@ -414,7 +452,7 @@
     $.extend(transitPageAnimates, options)
   })
     
-  $doc.trigger('addTransitPageAnimates.spa', {
+  $doc.trigger('spa:addTransitPageAnimates', {
     fadeIn: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
@@ -1377,11 +1415,10 @@
   })()
   
   //创建新页面
-  $doc.on('createpage.spa', function(event, options) {
-    $doc.trigger('openloader.spa')
+  $doc.on('spa:createpage', function(event, options) {
+    $doc.trigger('spa:openloader')
         
-    var routes = $win.data('routes.spa'),
-        hash = options.hash,
+    var hash = options.hash,
         pushData = options.pushData,
         requestData,
         routeRegStr,
@@ -1403,78 +1440,93 @@
     if(isRegExp(routeReg)) {
       var classname = pageOptions.classname ? ' spa-page-' + pageOptions.classname : '',
           $page = $('<div class="spa-page' + classname + '"><div class="spa-page-bg"></div><div class="spa-page-body"></div></div>'),
+          pageId = uniqueID(),
+          pageData,
           viewData
 
-      //初始化页面数据    
-      $page.data({
-        'hash.spa': hash,
-        'pushData.spa': pushData,
-        'requestData.spa': _extractParameters(routeReg, hash),
-        'route.spa': routeRegStr,
-        'id.spa': uniqueID()
-      }).appendTo($('body'))
+      // 设置pageId
+      $page.data('id', pageId)
 
-      //缓存页面
-      $doc.trigger('viewcache.spa', {view: $page})
+      // 初始化视图数据    
+      pageData = {
+        id: pageId,
+        hash: hash,
+        pushData: pushData,
+        requestData: _extractParameters(routeReg, hash),
+        route: routeRegStr,
+        el: $page
+      }
+
+      viewsdata[pageId] = pageData
+
+      // 渲染视图
+      $page.appendTo($('body'))
+
+      // 缓存视图
+      $doc.trigger('spa:viewcache', {view: $page})
       
-      //获取视图数据
-      viewData = pageOptions.view.call($page)
+      // 获取视图的渲染数据
+      viewData = pageOptions.view.call($page, pageData)
       
       if($.isPlainObject(viewData)) {
-        $page.trigger('initpage.spa', viewData)
+        $page.trigger('spa:initpage', viewData)
       }      
     }
   })
 
   //初始化页面
-  $doc.on('initpage.spa', '.spa-page', function(event, viewData) {
-    var $page = $(event.currentTarget)
-    
-    $page.data('viewData.spa', viewData)
-    
-    $('.spa-page-body', $page).html(viewData.body)
-    
-    //执行初始化回调函数
-    var routes = $win.data('routes.spa'),
-        pageOptions = routes[$page.data('route.spa')]
-    
-    //重置回调函数
+  $doc.on('spa:initpage', '.spa-page', function(event, viewData) {
+    var $page = $(event.currentTarget),
+        pageId = $page.data('id'),
+        pageData = viewsdata[pageId],
+        pageOptions = routes[pageData.route]
+            
+    // 重置回调函数
     $.each(['init', 'beforeopen', 'afteropen', 'beforeclose', 'afterclose'], function(i, fn) {
       viewData[fn] && (pageOptions[fn] = viewData[fn])
     })
-    
-    $page.show()
-    pageOptions.init.call($page)
 
-    $doc.trigger('closeloader.spa')
+    pageData.viewData = viewData
+
+    // 渲染视图内容
+    $('.spa-page-body', $page).html(viewData.body)    
+
+    // 初始化视图
+    pageOptions.init.call($page, pageData)
+
+    $doc.trigger('spa:closeloader')
     
-    //触发打开页面事件
-    $page.trigger('openpage.spa')
+    // 打开页面视图
+    $page.trigger('spa:openpage')
   })
   
   //打开页面
-  $doc.on('openpage.spa', '.spa-page', function(event, afteropenCallback) {
+  $doc.on('spa:openpage', '.spa-page', function(event, afteropenCallback) {
     var $page = $(event.currentTarget),
-        $curPage = $win.data('curPage.spa'),
-        routes = $win.data('routes.spa'),
-        route = routes[$page.data('route.spa')],
-        hash = $page.data('hash.spa'),
-        pushData = $page.data('pushData.spa'),
-        oldpushData = $page.data('oldpushData.spa'),
-        requestData = $page.data('requestData.spa'),
-        viewData = $page.data('viewData.spa'),
+        pageId = $page.data('id'),
+        pageData = viewsdata[pageId],
+        route = routes[pageData.route],
+        hash = pageData.hash,
+        pushData = pageData.pushData,
+        oldpushData = pageData.oldpushData,
+        requestData = pageData.requestData,
+        viewData = pageData.viewData,
         title = pushData.title || viewData.title,
         animate = pushData.animate || route.animate
     
+    // 第一次没有页面视图的时候
+    // 新建一个占位页面视图
     if(!$curPage) {
       $curPage = $('<div class="spa-page spa-page-empty"><div class="spa-page-body"></div></div>').appendTo($('body'))
-      $win.data('curPage.spa', $curPage)
     }
 
-    //如果是返回之前的页面，强制设置为之前页面的反相动画效果
-    //但是，pushData.animate的优先级更高
-    if(!pushData.animate && $curPage && $curPage.data('prevPage.spa') && $curPage.data('prevPage.spa').data('id.spa') == $page.data('id.spa')) {
-      var prevAnimate = $curPage.data('prevAnimate.spa')
+    var curPageId = $curPage.data('id'),
+        curPageData = viewsdata[curPageId] || {}
+
+    // 如果是返回前一个页面，强制设置为前一个页面的反相动画效果
+    // 但是，pushData.animate的优先级更高
+    if(!pushData.animate && curPageData.prevPage && curPageData.prevPage.data('id') === pageId) {
+      var prevAnimate = curPageData.prevAnimate
       if(prevAnimate && !$.isFunction(prevAnimate)) {
         animate = transitPageAnimatesName[prevAnimate]
       }
@@ -1483,19 +1535,19 @@
     var beforeclose,
         afterclose
     
-    //判断当前页面是面板还是页面
+    // 判断当前视图是面板还是页面
     if($curPage.hasClass('spa-panel')) {
-      var panelOptions = $win.data('panels.spa')[$curPage.data('id.spa')]
+      var panelOptions = panels[$curPage.data('id')]
       
       beforeclose = panelOptions.beforeclose
       afterclose = panelOptions.afterclose
-    } else if($curPage.data('route.spa')) {
-      var curPageRoute = routes[$curPage.data('route.spa')]
+    } else if(curPageData.route) {
+      var curPageRoute = routes[curPageData.route]
       
       beforeclose = curPageRoute.beforeclose
       afterclose = curPageRoute.afterclose
 
-      $doc.trigger('navigate.spa', {
+      $doc.trigger('spa:navigate', {
         hash: hash,
         title: title,
         pushData: pushData,
@@ -1503,28 +1555,28 @@
       })
     }
         
-    $doc.trigger('opencover.spa')
+    $doc.trigger('spa:opencover')
             
     var callback = function() {
-      route.afteropen.call($page)
-      afterclose && afterclose.call($curPage)
-      $page.data({'prevPage.spa': $curPage})
-      $win.data('curPage.spa', $page)
-      $doc.trigger('closecover.spa')
+      route.afteropen.call($page, pageData)
+      afterclose && afterclose.call($curPage, curPageData)
+      pageData.prevPage = $curPage
+      $curPage = $page
+      $doc.trigger('spa:closecover')
       
-      //页面打开后，如果当前路由和当前页面不匹配，触发路由请求
-      if($page.data('hash.spa') != getHash()) {
+      // 页面打开后，如果当前路由和当前页面不匹配，触发路由请求
+      if(pageData.hash !== getHash()) {
         $win.trigger('popstate')
       } else {
-        $.isFunction(afteropenCallback) && afteropenCallback()
+        $.isFunction(afteropenCallback) && afteropenCallback.call($page)
       }
     }
     
-    route.beforeopen.call($page)
-    beforeclose && beforeclose.call($curPage)
+    route.beforeopen.call($page, pageData)
+    beforeclose && beforeclose.call($curPage, curPageData)
     
-    //缓存页面最近一次载入的动画
-    $page.data({'prevAnimate.spa': animate})
+    // 缓存页面最近一次载入的动画
+    pageData.prevAnimate = animate
     
     if(!$.isFunction(animate)) {
       transitPage($page, $curPage, animate, callback)
@@ -1532,9 +1584,8 @@
       animate($page, $curPage, callback)
     }
 
-
     // 更改视图缓存顺序
-    $doc.trigger('viewcachesort.spa', {view: $page})
+    $doc.trigger('spa:viewcachesort', {view: $page})
     
   })
 
@@ -1556,72 +1607,132 @@
   }
   
   //定义面板
-  $doc.on('panel.spa', function(event, options) {
+  $doc.on('spa:panel', function(event, options) {
     var args = Array.prototype.slice.call(arguments, 1)
     if(args.length > 1) {
       $.each(args, function(i, panel) {
-        $doc.trigger('panel.spa', panel)
+        $doc.trigger('spa:panel', panel)
       })
       
       return false
     }
-    
-    var panels = $win.data('panels.spa') || {}
-    
+        
     //禁止重复定义ID相同的面板
     if(options.id && !panels[options.id]) {
       panels[options.id] = $.extend({}, defaultPanelOptions, options)
-      $win.data('panels.spa', panels)
     }
   })
-  
+
+  //创建新面板
+  $doc.on('spa:createpanel', function(event, id, pushData) {     
+    var panelOptions = panels[id]
+    
+    if(panelOptions) {
+      $doc.trigger('spa:openloader')
+
+      var classname = panelOptions.classname ? ' spa-panel-' + panelOptions.classname : '',
+          $panel = $('<div id="spa-panel-' + id + '" class="spa-page spa-panel ' + classname + '"><div class="spa-page-bg"></div><div class="spa-page-body"></div></div>'),
+          panelData,
+          viewData
+      
+      // 设置panelId
+      $panel.data('id', id)
+
+      panelData = {
+        id: id,
+        pushData: pushData,
+        el: $panel
+      }
+
+      viewsdata[id] = panelData
+
+      //初始化页面数据    
+      $panel.appendTo($body)
+
+      //缓存面板
+      $doc.trigger('spa:viewcache', {view: $panel})
+      
+      //获取视图数据
+      viewData = panelOptions.view.call($panel, panelData)
+            
+      if($.isPlainObject(viewData)) {
+        $panel.trigger('spa:initpanel', viewData)
+      }
+    }
+  })
+
+  //初始化面板
+  $doc.on('spa:initpanel', '.spa-panel', function(event, viewData) {
+    var $panel = $(event.currentTarget),
+        panelId = $panel.data('id'),
+        panelData = viewsdata[panelId],
+        pushData = panelData.pushData,
+        panelOptions = panels[panelId]
+        
+    //重置回调函数
+    $.each(['init', 'beforeopen', 'afteropen', 'beforeclose', 'afterclose'], function(i, fn) {
+      viewData[fn] && (panelOptions[fn] = viewData[fn])
+    })
+
+    panelData.viewData = viewData
+
+    // 渲染视图内容
+    $('.spa-page-body', $panel).html(viewData.body)
+
+    // 执行初始化回调函数    
+    panelOptions.init.call($panel, panelData)
+
+    $doc.trigger('spa:closeloader')
+    
+    //触发打开页面事件
+    $panel.trigger('spa:openpanel', [panelId, pushData])
+  })
+
   //打开面板
-  $doc.on('openpanel.spa', function(event, id, pushData) {
-    //在页面加载和转场过程中，阻止面板请求
-    var $cover = $win.data('cover.spa'),
-        $loader = $win.data('cover.spa')
-    if(($cover && $cover.css('display') == 'block') || ($loader && $loader.css('display') == 'block')) {
+  $doc.on('spa:openpanel', function(event, id, pushData) {
+    //在页面加载和转场过程中阻止面板请求
+    if(($cover && $cover.css('display') === 'block') || ($loader && $loader.css('display') === 'block')) {
       return false
     }
     
-    var panelscache = $win.data('panelscache.spa') ||　{},
-        $panel = panelscache[id]
+    var $panel = panelscache[id]
 
     pushData || (pushData = {})
     
     if($panel) {
-      var panels = $win.data('panels.spa'),
-          panelOptions = panels[id],
-          $curPage = $win.data('curPage.spa'),
+      var panelOptions = panels[id],
           animate = pushData.animate || panelOptions.animate
       
-      //如果当前页面是面板,则先收起之前的面板，再打开新面板
+      // 如果当前页面是面板，则先收起之前的面板，再打开新面板
       if($curPage.hasClass('spa-panel')) {
-        var $prevPage = $curPage.data('prevPage.spa')
+        var curPageData = viewsdata($curPage.data('id')),
+            $prevPage = curPageData.prevPage
         
-        $prevPage.trigger('openpage.spa', [function() {
-          $doc.trigger('openpanel.spa', [id, pushData])
+        $prevPage.trigger('spa:openpage', [function() {
+          $doc.trigger('spa:openpanel', [id, pushData])
         }])
         
         return false
       }
+
+      var panelData = viewsdata[id]
           
-      $panel.data('oldpushData.spa', $panel.data('pushData.spa'))
-      $panel.data('pushData.spa', pushData)
+      panelData.oldpushData = panelData.pushData
+      panelData.pushData = pushData
           
-      $doc.trigger('opencover.spa')
+      $doc.trigger('spa:opencover')
       
-      panelOptions.beforeopen.call($panel)
+      panelOptions.beforeopen.call($panel, panelData)
 
       var callback = function() {
-        panelOptions.afteropen.call($panel)
-        $panel.data({'prevPage.spa': $curPage})
-        $win.data('curPage.spa', $panel)
-        $doc.trigger('closecover.spa')
+        panelOptions.afteropen.call($panel, panelData)
+        panelData.prevPage = $curPage
+        $curPage = $panel
+        $doc.trigger('spa:closecover')
       }
 
-      //缓存页面最近一次载入的动画
-      $panel.data({'prevAnimate.spa': animate})
+      // 缓存页面最近一次载入的动画
+      panelData.prevAnimate = animate
       
       if(!$.isFunction(animate)) {
         transitPage($panel, $curPage, animate, callback)
@@ -1630,83 +1741,28 @@
       }
 
       // 更改视图缓存顺序
-      $doc.trigger('viewcachesort.spa', {view: $panel})
+      $doc.trigger('spa:viewcachesort', {view: $panel})
 
     } else {
-      $doc.trigger('createpanel.spa', [id, pushData])
+      $doc.trigger('spa:createpanel', [id, pushData])
     }
     
   })
   
   //关闭面板
-  $doc.on('closepanel.spa', function(event, options) {
+  $doc.on('spa:closepanel', function(event, options) {
     var $panel = $(event.target),
-        $curPage = $win.data('curPage.spa')
+        panelId = $panel.data('id'),
+        panelData = viewsdata[panelId]
     
     options && options.id && ($panel = $('.spa-panel-' + options.id))
     
-    if($curPage.hasClass('spa-panel') && $curPage.data('id.spa') == $panel.data('id.spa')) {
-      var $page = $panel.data('prevPage.spa')
+    // 关闭面板后打开之前的页面
+    if($curPage.hasClass('spa-panel') && $curPage.data('id') === panelId) {
+      var $page = panelData.prevPage
       
-      $page.trigger('openpage.spa')
+      $page.trigger('spa:openpage')
     }
-  })    
-  
-  //创建新面板
-  $doc.on('createpanel.spa', function(event, id, pushData) {     
-    var panels = $win.data('panels.spa') || {},
-        panelOptions = panels[id]
-    
-    if(panelOptions) {
-      $doc.trigger('openloader.spa')
-
-      var classname = panelOptions.classname ? ' spa-panel-' + panelOptions.classname : '',
-          $panel = $('<div id="spa-panel-' + id + '" class="spa-page spa-panel ' + classname + '"><div class="spa-page-bg"></div><div class="spa-page-body"></div></div>'),
-          viewData
-          
-      //初始化页面数据    
-      $panel.data({
-        'id.spa': id,
-        'pushData.spa': pushData
-      }).appendTo($('body'))
-
-      //缓存面板
-      $doc.trigger('viewcache.spa', {view: $panel})
-      
-      //获取视图数据
-      viewData = panelOptions.view.call($panel)
-            
-      if($.isPlainObject(viewData)) {
-        $panel.trigger('initpanel.spa', viewData)
-      }
-    }
-  })
-
-  //初始化面板
-  $doc.on('initpanel.spa', '.spa-panel', function(event, viewData) {
-    var $panel = $(event.currentTarget),
-        id = $panel.data('id.spa'),
-        pushData = $panel.data('pushData.spa')
-    
-    $panel.data('viewData.spa', viewData)
-    
-    $('.spa-page-body', $panel).html(viewData.body)
-    
-    //执行初始化回调函数
-    var panels = $win.data('panels.spa'),
-        panelOptions = panels[id]
-
-    //重置回调函数
-    $.each(['init', 'beforeopen', 'afteropen', 'beforeclose', 'afterclose'], function(i, fn) {
-      viewData[fn] && (panelOptions[fn] = viewData[fn])
-    })
-    
-    panelOptions.init.call($panel)
-
-    $doc.trigger('closeloader.spa')
-    
-    //触发打开页面事件
-    $panel.trigger('openpanel.spa', [id, pushData])
   })
   
   //点击面板外侧自动关闭面板
@@ -1717,7 +1773,7 @@
     if($tagert.hasClass('spa-page-bg') || $tagert.hasClass('spa-panel')) {
       event.stopPropagation()
       event.preventDefault()
-      $panel.trigger('closepanel.spa')
+      $panel.trigger('spa:closepanel')
     }
   })
 
@@ -1726,7 +1782,7 @@
    * 设置清理页面最多缓存的页面数量
    */
 
-  $doc.on('viewcachecount.spa', function(event, options) {
+  $doc.on('spa:viewcachecount', function(event, options) {
     viewcachecount = options.count
   })
 
@@ -1735,23 +1791,20 @@
    * 缓存并清理视图优化内存
    */
 
-  $doc.on('viewcache.spa', function(event, options) {
+  $doc.on('spa:viewcache', function(event, options) {
     var $view = options.view,
+        viewId = $view.data('id'),
         type,
         key
 
     // 先缓存
-    var pagescache = $win.data('pagescache.spa') ||　{},
-        panelscache = $win.data('panelscache.spa') ||　{},
-        viewscache = $win.data('viewscache.spa') ||　[]
-
     if($view.hasClass('spa-panel')) {
       type = 'panle'
-      key = $view.data('id.spa')
+      key = viewId
       panelscache[key] = $view
     } else {
       type = 'page'
-      key = $view.data('hash.spa')
+      key = viewsdata[viewId].hash
       pagescache[key] = $view
     }
 
@@ -1775,11 +1828,6 @@
         delete cleanupcache[cleanupkey]
       })
     }
-
-    // 存储新的缓存
-    $win.data('pagescache.spa', pagescache)
-    $win.data('panelscache.spa', panelscache)
-    $win.data('viewscache.spa', viewscache)
   })
 
 
@@ -1787,21 +1835,20 @@
    * 更新视图缓存顺序
    */
 
-  $doc.on('viewcachesort.spa', function(event, options) {
+  $doc.on('spa:viewcachesort', function(event, options) {
     var $view = options.view,
+        viewId = $view.data('id'),
         type,
         key,
         name,
         index
 
-    var viewscache = $win.data('viewscache.spa') ||　[]
-
     if($view.hasClass('spa-panel')) {
       type = 'panle'
-      key = $view.data('id.spa')
+      key = viewId
     } else {
       type = 'page'
-      key = $view.data('hash.spa')
+      key = viewsdata[viewId].hash
     }
 
     name = type + ':' + key
@@ -1811,9 +1858,6 @@
       viewscache.splice(index, 1)
       viewscache.unshift(name)
     }
-
-    // 存储新的缓存顺序
-    $win.data('viewscache.spa', viewscache)
   })
   
 
@@ -1821,7 +1865,7 @@
    * 路由请求
    */
   
-  $doc.on('navigate.spa', function(event, options) {
+  $doc.on('spa:navigate', function(event, options) {
     var hash = options.hash || '',
         title = options.title || '',
         pushData = options.pushData || {},
@@ -1835,9 +1879,9 @@
     } else {
       history.pushState(pushData, title, hash)
       
-      //fix:当$win.trigger('popstate')后,popstate事件对象无法获取到原生事件对象的state属性
-      !$.isEmptyObject(pushData) && $win.data('pushData.spa', pushData)
-      
+      //fix: 当$win.trigger('popstate')后,popstate事件对象无法获取到原生事件对象的state属性
+      !$.isEmptyObject(pushData) && (historystate = pushData)
+
       $win.trigger('popstate')
     }
   })
@@ -1847,31 +1891,20 @@
    * 场景转换遮罩
    */
 
-  //阻塞鼠标和手势操作
+  // 阻塞鼠标和手势操作
   function preventEventHandle(evnet) {
     event.stopPropagation()
     event.preventDefault()
   }
 
-  $doc.on('opencover.spa', function(event) {
-    var $cover = $win.data('cover.spa')
-    if(!$cover) {
-      $cover = $('<div class="spa-cover"></div>').appendTo($('body'))
-      $cover.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)
-      
-      /*
-       * bugfix:z-index ignored with webkit overflow set to touch(-webkit-overflow-scrolling: touch)
-       * 给遮罩层节点设置-webkit-overflow-scrolling: touch来抢占scrolling的优先级，等关闭遮罩层后，scrolling的优先级自动给到当前视图
-       */
-      $cover.trigger('scroll.spa')
-      
-      $win.data('cover.spa', $cover)
-    }
+  // 显示遮罩层
+  $doc.on('spa:opencover', function(event) {
     $cover.show()
   })
 
-  $doc.on('closecover.spa', function(event) {
-    $win.data('cover.spa').hide()
+  // 隐藏遮罩层
+  $doc.on('spa:closecover', function(event) {
+    $cover.hide()
   })
 
   
@@ -1880,24 +1913,20 @@
    * http://css-tricks.com/snippets/css/bouncy-animated-loading-animation/
    */
 
-  $doc.on('loader.spa', function(event, options) {
+  // 自定义loading层元素和样式
+  $doc.on('spa:loader', function(event, options) {
     options.body && (loaderBody = options.body)
     options.style && (loaderStyle = options.style)
   })
-    
-  $doc.on('openloader.spa', function(event) {
-    var $loader = $win.data('loader.spa')
-    if(!$loader) {
-      $doc.trigger('addstyle.spa', loaderStyle)
-      $loader = $('<div class="spa-loader">' + loaderBody + '</div>').appendTo($('body'))
-      $loader.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)
-      $win.data('loader.spa', $loader)
-    }
+  
+  // 显示loading层
+  $doc.on('spa:openloader', function(event) {
     $loader.show()
   })
 
-  $doc.on('closeloader.spa', function(event) {
-    $win.data('loader.spa').hide()
+  // 隐藏loading层
+  $doc.on('spa:closeloader', function(event) {
+    $loader.hide()
   })
     
   
@@ -1905,15 +1934,33 @@
    * 应用启动
    */
   
-  $doc.on('boot.spa', function(event) {
+  $doc.on('spa:boot', function(event) {
+    // 初始化$body
     $body = $('body')
-    $doc.trigger('addstyle.spa', viewStyle)
-    $doc.trigger('adjustfullscreen.spa')
-    $doc.data('boot.spa', true)
+    // 注入样式
+    $doc.trigger('spa:addstyle', viewStyle)
+    // 调整全屏模式
+    $doc.trigger('spa:adjustfullscreen')
+
+    // 初始化$cover
+    $cover = $('<div class="spa-cover"></div>').appendTo($('body'))
+    $cover.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)   
+    // fix: z-index ignored with webkit overflow set to touch(-webkit-overflow-scrolling: touch)
+    // 给遮罩层节点设置-webkit-overflow-scrolling: touch来抢占scrolling的优先级，等关闭遮罩层后，scrolling的优先级自动给到当前视图
+    $cover.trigger('spa:scroll')
+
+    // 初始化loading层
+    $doc.trigger('spa:addstyle', loaderStyle)
+    $loader = $('<div class="spa-loader">' + loaderBody + '</div>').appendTo($('body'))
+    $loader.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)
+
+    // 启动完成
+    hasBoot = true
+    // 激活路由请求
     $win.trigger('popstate')
   })
   
-})(jQuery)
+})(window.Zepto || window.jQuery || window.$)
 
 /*
  * requestAnimationFrame and cancel polyfill

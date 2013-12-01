@@ -13,34 +13,28 @@ define({
     </div>\
   </div>\
   ',
-  init: function() {
+  init: function(panelData) {
     var $view = this,
         $dialog = $('.panel', $view)
     
-    $('.container', $view).trigger('scroll.spa')
+    $('.container', $view).trigger('spa:scroll')
     
     //高度居中
     $dialog.css({marginTop: ($view.height() - $dialog.height()) / 2})
     
-    $view.on('click', 'button', function(event) {
-      $view.trigger('closepanel.spa')
-    })
-
-    $view.on('click touchstart', '.panel', function(event) {
+    $view.on('click touchstart', 'button', function(event) {
+      $view.trigger('spa:closepanel')
       event.stopPropagation()
-    })
-
-    $view.on('click touchstart', '.spa-page-body', function(event) {
-      $view.trigger('closepanel.spa')
+      event.preventDefault()
     })
     
   },
-  beforeopen: function() {
+  beforeopen: function(panelData) {
     var $view = this
     
     $('.spa-page-bg', $view).css({opacity: 0}).transition({opacity: 0.6})
   },
-  beforeclose: function() {
+  beforeclose: function(panelData) {
     var $view = this
     
     $('.spa-page-bg', $view).transition({opacity: 0})

@@ -8,14 +8,14 @@ define({
     </div>\
   </div>\
   ',
-  init: function() {
+  init: function(pageData) {
     var $view = this
     
-    $('.page-container', $view).trigger('scroll.spa')
+    $('.page-container', $view).trigger('spa:scroll')
   },
-  beforeopen: function() {
+  beforeopen: function(pageData) {
     var $view = this,
-        pushData = $view.data('pushData.spa'),
+        pushData = pageData.pushData,
         animate = pushData.animate || 'default'
 
     $('.animate', $view).text(animate)
