@@ -1,3 +1,10 @@
+/*!
+ * SPA v0.3.0
+ * A webapp framework for routing control and view transitions
+ * Copyright 2013 zhaoda <http://zhaoda.net>
+ * Licensed under MIT https://raw.github.com/zhaoda/spa/master/LICENSE
+ */
+
 // SPA
 // ---
 
@@ -13,6 +20,8 @@
       location = window.location,
       // 浏览器历史记录
       history = window.history,
+      // 是否是ios
+      isios = navigator.userAgent.toLowerCase().match(/(iphone|ipod|ipad)/),
       // popstate事件state数据中转
       historystate,
       // 框架是否已经启动
@@ -51,7 +60,8 @@
         .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; }\
         .spa-page-bg {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; }\
         .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; }\
-        .spa-scroll {overflow: auto; -webkit-overflow-scrolling: touch; -moz-overflow-scrolling: touch; -ms-overflow-scrolling: touch; -o-overflow-scrolling: touch; overflow-scrolling: touch; }\
+        .spa-scroll {overflow: auto;}\
+        .spa-scroll-touch {-webkit-overflow-scrolling: touch;}\
         .spa-scroll-x {overflow-y: hidden;}\
         .spa-scroll-y {overflow-x: hidden;}\
         .spa-cover {display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; z-index: 5000; }\
@@ -71,7 +81,14 @@
           0% { width: 10px; height: 10px; opacity: 0.8; -moz-transform: translateY(0); }\
           100% { width: 24px; height: 24px; opacity: 0.1; -moz-transform: translateY(-21px);}}'
       
-  
+  // spa对外接口
+  $.spa = {}
+
+  // 获取视图数据
+  $.spa.getViewData = function($view) {
+    return viewsdata[$view.data('id')]
+  }
+
   /*
    * 插入样式
    */
@@ -115,6 +132,10 @@
           width: winWidth,
           height: winHeight
         })
+
+        // 发现在某些安卓浏览器全凭模式和非全屏模式切换后
+        // 手势的第一次的动作失效
+        // 在这里可以做些处理？
       }
     }
     
@@ -139,10 +160,18 @@
     $target.addClass('spa-scroll' + (direction ? ' spa-scroll-' + direction : ''))    
   })
 
-  $doc.on('touchstart', '.spa-scroll, .spa-scroll-x, .spa-scroll-y', function(event) {
+  $doc.on('spa:removescroll', function(event, options) {
+    var $target = $(event.target)
+    
+    $target.removeClass('spa-scroll')    
+  })
+
+  // ios设备才支持scrollfix
+  isios && $doc.on('touchstart', '.spa-scroll, .spa-scroll-x, .spa-scroll-y', function(event) {
+
     var $target = $(event.currentTarget),
-        scrollTop = $target.scrollTop(),
-        scrollLeft = $target.scrollLeft(),
+        scrollTop = $target.prop('scrollTop'),
+        scrollLeft = $target.prop('scrollLeft'),
         height = $target.height(),
         width = $target.width(),
         scrollHeight = $target.prop('scrollHeight'),
@@ -153,13 +182,13 @@
         // event.preventDefault()
       }
       if(scrollLeft <= 0) {
-        $target.scrollLeft(1)
+        $target.prop('scrollLeft', 1)
       }
       if(scrollLeft + width > scrollWidth) {
         // event.preventDefault()
       }
       if(scrollLeft + width >= scrollWidth) {
-        $target.scrollLeft(scrollWidth - width - 1)
+        $target.prop('scrollLeft', scrollWidth - width - 1)
       }
     }
 
@@ -168,13 +197,13 @@
         // event.preventDefault()
       }
       if(scrollTop <= 0) {
-        $target.scrollTop(1)
+        $target.prop('scrollTop', 1)
       }
       if(scrollTop + height > scrollHeight) {
         // event.preventDefault()
       }
       if(scrollTop + height >= scrollHeight) {
-        $target.scrollTop(scrollTop - 1)
+        $target.prop('scrollTop', scrollTop - 1)
       }
     }
           
@@ -1552,6 +1581,10 @@
             
     var callback = function() {
       route.afteropen.call($page, pageData)
+
+      // 关闭之后清除spa-scroll-touch
+      $('.spa-scroll', $curPage).removeClass('spa-scroll-touch')
+
       afterclose && afterclose.call($curPage, curPageData)
       pageData.prevPage = $curPage
       $curPage = $page
@@ -1564,9 +1597,13 @@
         $.isFunction(afteropenCallback) && afteropenCallback.call($page)
       }
     }
+
+    // 打开之前还原spa-scroll-touch
+    $('.spa-scroll', $page).addClass('spa-scroll-touch')
+
+    beforeclose && beforeclose.call($curPage, curPageData)
     
     route.beforeopen.call($page, pageData)
-    beforeclose && beforeclose.call($curPage, curPageData)
     
     // 缓存页面最近一次载入的动画
     pageData.prevAnimate = animate
@@ -1714,11 +1751,14 @@
       panelData.pushData = pushData
           
       $doc.trigger('spa:opencover')
+
+      // 打开之前还原spa-scroll-touch
+      $('.spa-scroll', $panel).addClass('spa-scroll-touch')
       
       panelOptions.beforeopen.call($panel, panelData)
 
       var callback = function() {
-        panelOptions.afteropen.call($panel, panelData)
+        panelOptions.afteropen.call($panel, panelData)  
         panelData.prevPage = $curPage
         $curPage = $panel
         $doc.trigger('spa:closecover')
@@ -1938,9 +1978,6 @@
     // 初始化$cover
     $cover = $('<div class="spa-cover"></div>').appendTo($('body'))
     $cover.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)   
-    // fix: z-index ignored with webkit overflow set to touch(-webkit-overflow-scrolling: touch)
-    // 给遮罩层节点设置-webkit-overflow-scrolling: touch来抢占scrolling的优先级，等关闭遮罩层后，scrolling的优先级自动给到当前视图
-    $cover.trigger('spa:scroll')
 
     // 初始化loading层
     $doc.trigger('spa:addstyle', loaderStyle)
