@@ -29,6 +29,8 @@ define({
       <iframe src="http://ghbtns.com/github-btn.html?user=zhaoda&repo=spa&type=watch" allowtransparency="true" frameborder="0" scrolling="0" width="53" height="20"></iframe>\
       <iframe src="http://ghbtns.com/github-btn.html?user=zhaoda&repo=spa&type=fork" allowtransparency="true" frameborder="0" scrolling="0" width="53" height="20"></iframe>\
       <iframe src="http://ghbtns.com/github-btn.html?user=zhaoda&type=follow" allowtransparency="true" frameborder="0" scrolling="0" width="132" height="20"></iframe>\
+      </p>\
+      <p>\
       <a href="https://travis-ci.org/zhaoda/spa" title="Build Status" target="_blank"><img src="https://travis-ci.org/zhaoda/spa.png?branch=master"/></a>\
       <a href="https://david-dm.org/zhaoda/spa#info=devDependencies" title="Dependency status" target="_blank"><img src="https://david-dm.org/zhaoda/spa/dev-status.png"/></a>\
       <a href="https://sourcegraph.com/github.com/zhaoda/spa" title="Total views" target="_blank"><img src="https://sourcegraph.com/api/repos/github.com/zhaoda/spa/counters/views.png"/></a>\
