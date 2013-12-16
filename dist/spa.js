@@ -55,8 +55,10 @@
       viewscache = [],
       // 视图数据
       viewsdata = {},
+      // 全凭模式监控层
+      $fullscreen,
       // 透明遮罩层
-      $cover,
+      // $cover,
       // loading遮罩层
       $loader,
       // 当前视图
@@ -112,15 +114,14 @@
   ;(function() {
     var requestID,
         winHeight,
-        winWidth,
-        $fullscreen = $('<div class="spa-fullscreen"></div>').prependTo($body)
+        winWidth
     
     var adjust = function() {
       winHeight = Math.max($win.height(), window.innerHeight),
       winWidth = Math.max($win.width(), window.innerWidth)
             
-      // 撑高body，收起iphone safari的地址栏
-      $fullscreen.css({height: winHeight * 2})      
+      // 撑高body，收起iphone(ios<7) safari的地址栏
+      $fullscreen.css({height: winHeight * 2})
       window.scrollTo(0, 0)
       
       //缓存window全屏时的高度
@@ -231,7 +232,7 @@
   
   // window.onunload
   $win.on('unload', function(event) {
-    hasBoot = false
+    $body.html('')
   })
 
   
@@ -249,7 +250,10 @@
     if(!hasBoot) return
 
     // 在页面加载和转场过程中阻止路由请求
-    if(($cover && $cover.css('display') === 'block') || ($loader && $loader.css('display') === 'block')) {
+    // if(($cover && $cover.css('display') === 'block') || ($loader && $loader.css('display') === 'block')) {
+    //   return false
+    // }
+    if($loader && $loader.css('display') === 'block') {
       return false
     }
     
@@ -421,7 +425,8 @@
     var $el = $(this)
 
     // css3动画是异步无阻塞的，防止同时重绘
-    setTimeout(function() {
+    requestAnimationFrame(function() {
+      // $el.get(0).offsetWidth
       properties[transitionName] = '0.4s'
       $el.css(properties).emulateTransitionEnd(function() {
         // 过渡动画结束后移除 transition
@@ -430,7 +435,7 @@
         $el.css(properties)
         callback && callback()
       })
-    }, 32)
+    })
 
 
     return $el
@@ -1414,16 +1419,14 @@
     
     transitPageAnimatesName[animate] || (animate = 'defaultInOut')
 
-    requestAnimationFrame(function() {
-      // 还原之前转场过程中被修改的视图样式
-      toStartCss.opacity = 1
-      if(!isPanelAnimate(animate)) {
-        toStartCss[transformName] = 'translate3d(0, 0, 0) scale3d(1, 1, 1)'
-      }
-      $toPageBody.css(toStartCss)
+    // 还原之前转场过程中被修改的视图样式
+    toStartCss.opacity = 1
+    if(!isPanelAnimate(animate)) {
+      toStartCss[transformName] = 'translate3d(0, 0, 0) scale3d(1, 1, 1)'
+    }
+    $toPageBody.css(toStartCss)
 
-      transitPageAnimates[animate].apply($toPage, [$toPage, $fromPage, callback])
-    })
+    transitPageAnimates[animate].apply($toPage, [$toPage, $fromPage, callback])
   }
   
   //生成唯一id
@@ -1513,11 +1516,11 @@
 
     // 初始化视图
     pageOptions.init.call($page, pageData)
-
-    $doc.trigger('spa:closeloader')
     
     // 打开页面视图
     $page.trigger('spa:openpage')
+
+    $doc.trigger('spa:closeloader')
   })
   
   //打开页面
@@ -1575,7 +1578,7 @@
       })
     }
         
-    $doc.trigger('spa:opencover')
+    // $doc.trigger('spa:opencover')
             
     var callback = function() {
       route.afteropen.call($page, pageData)
@@ -1586,7 +1589,7 @@
       afterclose && afterclose.call($curPage, curPageData)
       pageData.prevPage = $curPage
       $curPage = $page
-      $doc.trigger('spa:closecover')
+      // $doc.trigger('spa:closecover')
       
       // 页面打开后，如果当前路由和当前页面不匹配，触发路由请求
       if(pageData.hash !== getHash()) {
@@ -1709,17 +1712,20 @@
 
     // 执行初始化回调函数    
     panelOptions.init.call($panel, panelData)
-
-    $doc.trigger('spa:closeloader')
     
     //触发打开页面事件
     $panel.trigger('spa:openpanel', [panelId, pushData])
+
+    $doc.trigger('spa:closeloader')
   })
 
   //打开面板
   $doc.on('spa:openpanel', function(event, id, pushData) {
     //在页面加载和转场过程中阻止面板请求
-    if(($cover && $cover.css('display') === 'block') || ($loader && $loader.css('display') === 'block')) {
+    // if(($cover && $cover.css('display') === 'block') || ($loader && $loader.css('display') === 'block')) {
+    //   return false
+    // }
+    if($loader && $loader.css('display') === 'block') {
       return false
     }
     
@@ -1748,7 +1754,7 @@
       panelData.oldpushData = panelData.pushData
       panelData.pushData = pushData
           
-      $doc.trigger('spa:opencover')
+      // $doc.trigger('spa:opencover')
 
       // 打开之前还原spa-scroll-touch
       $('.spa-scroll', $panel).addClass('spa-scroll-touch')
@@ -1759,7 +1765,7 @@
         panelOptions.afteropen.call($panel, panelData)  
         panelData.prevPage = $curPage
         $curPage = $panel
-        $doc.trigger('spa:closecover')
+        // $doc.trigger('spa:closecover')
       }
 
       // 缓存页面最近一次载入的动画
@@ -1929,14 +1935,14 @@
   }
 
   // 显示遮罩层
-  $doc.on('spa:opencover', function(event) {
-    $cover.show()
-  })
+  // $doc.on('spa:opencover', function(event) {
+  //   $cover.show()
+  // })
 
   // 隐藏遮罩层
-  $doc.on('spa:closecover', function(event) {
-    $cover.hide()
-  })
+  // $doc.on('spa:closecover', function(event) {
+  //   $cover.hide()
+  // })
 
   
   /*
@@ -1971,11 +1977,12 @@
     // 注入样式
     $doc.trigger('spa:addstyle', viewStyle)
     // 调整全屏模式
+    $fullscreen = $('<div class="spa-fullscreen"></div>').prependTo($body)
     $doc.trigger('spa:adjustfullscreen')
 
     // 初始化$cover
-    $cover = $('<div class="spa-cover"></div>').appendTo($('body'))
-    $cover.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)   
+    // $cover = $('<div class="spa-cover"></div>').appendTo($('body'))
+    // $cover.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)   
 
     // 初始化loading层
     $doc.trigger('spa:addstyle', loaderStyle)

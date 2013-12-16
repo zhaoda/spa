@@ -19,7 +19,7 @@ module.exports = function(grunt) {
       gruntfile: {
         src: 'Gruntfile.js'
       },
-      bulid: {
+      build: {
         src: 'src/<%= pkg.name %>.js'
       }
     },
