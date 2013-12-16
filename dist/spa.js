@@ -1712,11 +1712,11 @@
 
     // 执行初始化回调函数    
     panelOptions.init.call($panel, panelData)
+
+    $doc.trigger('spa:closeloader')
     
     //触发打开页面事件
     $panel.trigger('spa:openpanel', [panelId, pushData])
-
-    $doc.trigger('spa:closeloader')
   })
 
   //打开面板
