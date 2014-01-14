@@ -1,7 +1,7 @@
 requirejs.config({
   baseUrl: '',
-  urlArgs: "v=" +  (new Date()).getTime(),
-  // urlArgs: 'v=20131128',
+  // urlArgs: "v=" +  (new Date()).getTime(),
+  urlArgs: 'v=20140114',
   paths: {}
 })
 
