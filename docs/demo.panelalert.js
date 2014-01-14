@@ -20,13 +20,13 @@ define({
     $('.container', $view).trigger('spa:scroll')
     
     //高度居中
-    $dialog.css({marginTop: ($view.height() - $dialog.height()) / 2})
+    // $dialog.css({marginTop: ($view.height() - $dialog.height()) / 2})
     
-    $view.on('click touchstart', 'button', function(event) {
-      $view.trigger('spa:closepanel')
-      event.stopPropagation()
-      event.preventDefault()
-    })
+    // $view.on('click touchstart', 'button', function(event) {
+    //   $view.trigger('spa:closepanel')
+    //   event.stopPropagation()
+    //   event.preventDefault()
+    // })
     
   },
   beforeopen: function(panelData) {

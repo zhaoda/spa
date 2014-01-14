@@ -1,7 +1,7 @@
 requirejs.config({
   baseUrl: '',
-  // urlArgs: "v=" +  (new Date()).getTime(),
-  urlArgs: 'v=20131128',
+  urlArgs: "v=" +  (new Date()).getTime(),
+  // urlArgs: 'v=20131128',
   paths: {}
 })
 
@@ -16,7 +16,7 @@ var pageHome = {
   view: function() {
     var $page = this
     requirejs(['home'], function(viewData) {
-      $page.trigger('spa:initpage', viewData)
+      $doc.trigger('spa:initpage', [$page, viewData])
     })
   }
 }
@@ -29,7 +29,7 @@ var demoNewPage = {
   view: function() {
     var $page = this
     requirejs(['demo.newpage'], function(viewData) {
-      $page.trigger('spa:initpage', viewData)
+      $doc.trigger('spa:initpage', [$page, viewData])
     })
   }
 }
@@ -42,7 +42,7 @@ var demoTransitPage = {
   view: function() {
     var $page = this
     requirejs(['demo.transitpage'], function(viewData) {
-      $page.trigger('spa:initpage', viewData)
+      $doc.trigger('spa:initpage', [$page, viewData])
     })
   }
 }
@@ -58,7 +58,7 @@ var panelMenu = {
   view: function() {
     var $panel = this
     requirejs(['menu'], function(menuView) {
-      $panel.trigger('spa:initpage', menuView)
+      $doc.trigger('spa:initpanel', [$panel, viewData])
     })
   }
 }
@@ -71,7 +71,7 @@ var demoPanelSidemenu = {
   view: function() {
     var $panel = this
     requirejs(['demo.panelsidemenu'], function(viewData) {
-      $panel.trigger('spa:initpanel', viewData)
+      $doc.trigger('spa:initpanel', [$panel, viewData])
     })
   }
 }
@@ -84,7 +84,18 @@ var demoPanelAlert = {
   view: function() {
     var $panel = this
     requirejs(['demo.panelalert'], function(viewData) {
-      $panel.trigger('spa:initpanel', viewData)
+      $doc.trigger('spa:initpanel', [$panel, viewData])
+
+      var $dialog = $('.panel', $panel)
+
+      //高度居中
+      $dialog.css({marginTop: ($panel.height() - $dialog.prop('offsetHeight')) / 2})
+      
+      $panel.on('click touchstart', 'button', function(event) {
+        $panel.trigger('spa:closepanel')
+        event.stopPropagation()
+        event.preventDefault()
+      })
     })
   }
 }
@@ -97,7 +108,7 @@ var demoPanelConfirm = {
   view: function() {
     var $panel = this
     requirejs(['demo.panelconfirm'], function(viewData) {
-      $panel.trigger('spa:initpanel', viewData)
+      $doc.trigger('spa:initpanel', [$panel, viewData])
     })
   }
 }
@@ -110,7 +121,7 @@ var demoPanelTransit = {
   view: function() {
     var $panel = this
     requirejs(['demo.paneltransit'], function(viewData) {
-      $panel.trigger('spa:initpanel', viewData)
+      $doc.trigger('spa:initpanel', [$panel, viewData])
     })
   }
 }

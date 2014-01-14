@@ -19,7 +19,7 @@ define({
       来快速构建你的WebApp；\
       </p>\
       <p>\
-      SPA依赖<a href="http://jquery.com/" target="_blank">jQuery</a>或<a href="http://zeptojs.com/" target="_blank">Zepto</a>，\
+      SPA依赖<a href="http://zeptojs.com/" target="_blank">Zepto</a>或<a href="http://jquery.com/" target="_blank">jQuery</a>，\
       并且每个视图可以通过<a href="http://requirejs.org/" target="_blank">RequireJS</a>、<a href="http://seajs.org/docs/" target="_blank">Sea.js</a>等CommonJS解决方案或者自定义的方式进行模块化组织、异步加载；\
       </p>\
       <p>\
@@ -92,7 +92,7 @@ var pageHome = {\n\
   view: function() {\n\
     var $page = this\n\
     requirejs(["home"], function(viewData) {\n\
-      $page.trigger("spa:initview", viewData)\n\
+      $doc.trigger("spa:initview", [$page, viewData])\n\
     })\n\
   }\n\
 }\n\
@@ -118,13 +118,12 @@ $doc.trigger("spa:navigate", {\n\
       <p>\
       页面视图是用一组<code>&lt;div&gt;</code>节点构造的容器，模拟成<code>&lt;body&gt;</code>节点承载视图内容并覆盖整个视图区域；\
       <code>.spa-page-<em>customclassname</em></code>区分不同视图，添加自定义样式；\
-      每个节点的背景色默认透明，<code>.spa-page-bg</code>节点可以做半透明背景色和背景色透明渐变动画；\
+      每个节点的背景色默认透明；\
       <code>.spa-page-body</code>节点用来承载内容，通常在不需要半透明背景色的视图中，视图的背景色应该设置到该节点；\
       </p>\
       <pre>\
 &lt;!--页面视图的DOM结构--&gt;\n\
 &lt;div class="spa-page spa-page-<em>customclassname</em>"&gt;\n\
-  &lt;div class="spa-page-bg"&gt;&lt;/div&gt;\n\
   &lt;div class="spa-page-body"&gt;\n\
     &lt;!--视图内容会被渲染到这里--&gt;\n\
   &lt;/div&gt;\n\
@@ -142,7 +141,7 @@ var demoNewPage = {\n\
   view: function() {\n\
     var $page = this\n\
     requirejs(["demo.newpage"], function(viewData) {\n\
-      $page.trigger("spa:initview", viewData)\n\
+      $doc.trigger("spa:initview", [$page, viewData])\n\
     })\n\
   }\n\
 }\n\
@@ -223,7 +222,7 @@ $doc.trigger("spa:openpanel", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
       </pre>\
       <h3>转换动画</h3>\
       <p>\
-      SPA内置了26组视图转换动画，每组包含一个入场动画和一个相反的出场动画，比如<code>fadeIn & fadeOut</code>、<code>pushInRight & pushOutLeft</code>，\
+      SPA内置了22组视图转换动画，每组包含一个入场动画和一个相反的出场动画，比如<code>fadeIn & fadeOut</code>、<code>pushInRight & pushOutLeft</code>，\
       其中有12组动画是只支持面板视图，比如<code>overlayInUp & overlayOutDown</code>，\
       </p>\
       <p>\
@@ -239,22 +238,6 @@ $doc.trigger("spa:openpanel", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
       <p>\
       <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeIn">fadeIn</a>\
       <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOut">fadeOut</a>\
-      </p>\
-      <p>\
-      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeInLeft">fadeInLeft</a>\
-      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOutRight">fadeOutRight</a>\
-      </p>\
-      <p>\
-      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeInRight">fadeInRight</a>\
-      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOutLeft">fadeOutLeft</a>\
-      </p>\
-      <p>\
-      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeInUp">fadeInUp</a>\
-      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOutDown">fadeOutDown</a>\
-      </p>\
-      <p>\
-      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeInDown">fadeInDown</a>\
-      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOutUp">fadeOutUp</a>\
       </p>\
       <p>\
       <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideInLeft">slideInLeft</a>\

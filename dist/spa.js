@@ -1,19 +1,9 @@
 /*!
- * SPA v0.3.0
+ * SPA v1.0.0
  * A webapp framework for routing control and view transitions
- * Copyright 2013 zhaoda <http://zhaoda.net>
+ * Copyright 2014 zhaoda <http://zhaoda.net>
  * Licensed under MIT https://raw.github.com/zhaoda/spa/master/LICENSE
  */
-
-/*!
- * SPA v0.3.0
- * A webapp framework for routing control and view transitions
- * Copyright 2013 zhaoda <http://zhaoda.net>
- * Licensed under MIT https://raw.github.com/zhaoda/spa/master/LICENSE
- */
-
-// SPA
-// ---
 
 ;(function($) {
   'use strict';
@@ -33,6 +23,10 @@
       historystate,
       // 框架是否已经启动
       hasBoot = false,
+      // 在视图转场过程中，是否阻塞其他转场请求
+      isPrevent = false,
+      // 是否是首次打开视图
+      transitFirst = true,
       // 页面视图定义集合
       routes = {},
       // 面板视图定义集合
@@ -66,30 +60,26 @@
       // 框架样式
       viewStyle = 'body {position: relative; margin: 0; padding: 0; width: 100%; overflow: hidden;}\
         .spa-fullscreen {position: absolute; left: 0; top: 0; margin: 0; padding: 0; width: 100%; visibility: hidden; overflow: hidden; z-index: -1; }\
-        .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; }\
+        .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; -webkit-transform: translateZ(0); }\
         .spa-page-bg {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; }\
-        .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; }\
+        .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; -webkit-transform: translateZ(0); }\
         .spa-scroll {overflow: auto;}\
-        .spa-scroll-touch {-webkit-overflow-scrolling: touch;}\
+        .spa-scroll-touch {-webkit-overflow-scrolling: touch; }\
         .spa-scroll-x {overflow-y: hidden;}\
         .spa-scroll-y {overflow-x: hidden;}\
         .spa-cover {display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; z-index: 5000; }\
         .spa-loader {display: none; position: absolute; left: 0; right: 0; top: 0; bottom: 0; text-align: center; overflow: hidden; z-index: 5001; }',
       // loading层元素
-      loaderBody = '<div class="spa-loader-animate"><span></span><span></span><span></span></div>',
+      loaderBody = '<div class="spa-loader-animate"><div class="bg"></div><span class="ball"></span><span class="ball"></span></div>',
       // loading层样式
-      loaderStyle = '.spa-loader .spa-loader-animate {position: absolute; left: 50%; top: 50%; margin: -12px 0 0 -65px; }\
-        .spa-loader .spa-loader-animate span { display: inline-block; vertical-align: middle; width: 10px; height: 10px; margin: 0 10px; background: black; border-radius: 50px; -webkit-animation: loader 0.9s infinite alternate; animation: loader 0.9s infinite alternate; }\
-        .spa-loader .spa-loader-animate span:nth-of-type(2) { -webkit-animation-delay: 0.3s; -moz-animation-delay: 0.3s; }\
-        .spa-loader .spa-loader-animate span:nth-of-type(3) { -webkit-animation-delay: 0.6s; -moz-animation-delay: 0.6s; }\
-        @-webkit-keyframes loader {\
-          0% { width: 10px; height: 10px; opacity: 0.8; -webkit-transform: translateY(0); }\
-          100% { width: 24px; height: 24px; opacity: 0.1; -webkit-transform: translateY(-21px); }\
-        }\
-        @-moz-keyframes loader {\
-          0% { width: 10px; height: 10px; opacity: 0.8; -moz-transform: translateY(0); }\
-          100% { width: 24px; height: 24px; opacity: 0.1; -moz-transform: translateY(-21px);}}'
-      
+      loaderStyle = '.spa-loader-animate {position: absolute; top: 50%; left: 50%;}\
+        .spa-loader-animate .bg {position: absolute; width: 64px; height: 64px; margin: 0 auto; top: -32px; left: -32px; border-radius: 50%; background: #2C3E50; opacity: 0.5;}\
+        .spa-loader-animate .ball {display: block; float: left; padding: 8px; margin-top: -8px; margin-left: -10px; -webkit-border-radius: 50%; -moz-border-radius: 50%; -ms-border-radius: 50%; -o-border-radius: 50%; border-radius: 50%;}\
+        .spa-loader-animate span:nth-child(2) {background: #16A085; -webkit-animation: move-left 800ms ease-in-out infinite alternate; -moz-animation: move-left 800ms ease-in-out infinite alternate; -ms-animation: move-left 800ms ease-in-out infinite alternate; -animation: move-left 800ms ease-in-out infinite alternate;}\
+        .spa-loader-animate .ball:nth-child(3) {background: #E67E22; -webkit-animation: move-right 800ms ease-in-out infinite alternate; -moz-animation: move-right 800ms ease-in-out infinite alternate; -ms-animation: move-right 800ms ease-in-out infinite alternate; animation: move-right 800ms ease-in-out infinite alternate;}\
+        @-webkit-keyframes move-left {to {-webkit-transform: translate(20px, 0); transform: translate(20px, 0); background: #e85932;}}\
+        @-webkit-keyframes move-right {to {-webkit-transform: translate(-20px, 0); transform: translate(-20px, 0); background: #44bbcc;}}'
+
   // spa对外接口
   $.spa = {}
 
@@ -98,12 +88,17 @@
     return viewsdata[$view.data('id')]
   }
 
+  // 获取当前视图
+  $.spa.getCurPage = function() {
+    return $curPage
+  }
+
   /*
    * 插入样式
    */
   
   $doc.on('spa:addstyle', function(event, css) {
-    $('<style type="text/css">' + css + '</style>').appendTo($('head'))
+    $('head').append('<style type="text/css">' + css + '</style>')
   })
   
   
@@ -147,7 +142,7 @@
       }
     }
     
-    $win.on('spa:adjustfullscreen resize orientationchange', function(event) {
+    $win.on('spa:adjustfullscreen orientationchange', function(event) {
       if(requestID !== undefined) {
         cancelAnimationFrame(requestID)
         requestID = undefined
@@ -222,17 +217,11 @@
    * 阻塞body的滚动条
    */
   $win.on('scroll', function(event) {
-    var innerHeight = $body.data('innerHeight')
+    var innerHeight = $body && $body.data('innerHeight')
     
     if(innerHeight && innerHeight !== window.innerHeight) {
       $win.trigger('spa:adjustfullscreen')
     }
-  })
-
-  
-  // window.onunload
-  $win.on('unload', function(event) {
-    $body.html('')
   })
 
   
@@ -383,21 +372,17 @@
     var fromPageData = viewsdata[$fromPage.data('id')],
         toPageData = viewsdata[$toPage.data('id')]
 
-    fromPageData && fromPageData.prevPage && fromPageData.prevPage.css({zIndex: pagezIndex})
-    toPageData.prevPage && toPageData.prevPage.css({zIndex: pagezIndex})
-    $fromPage.css({zIndex: prevPagezIndex/*, 'pointer-events': 'none'*/})
+    // fromPageData && fromPageData.prevPage && fromPageData.prevPage.css({zIndex: pagezIndex})
+    // toPageData.prevPage && toPageData.prevPage.css({zIndex: pagezIndex})
+    $fromPage.css({zIndex: prevPagezIndex})
     $toPage.css({zIndex: curPagezIndex})
-    // 防止事件点击穿透
-    // setTimeout(function() {
-    //   $toPage.css({'pointer-events': 'auto'})
-    // }, 100)
   }
     
   var transitPageAnimates = {},
       transitPageAnimatesName = {},
-      transformName = 'transform',
-      transitionName = 'transition',
-      transitionEndEvent = 'transitionend'
+      transformName,
+      transitionName,
+      transitionEndEvent
 
   ;(function() {
     var transitions = {
@@ -407,16 +392,16 @@
       '-o-transition': ['-o-transform', 'oTransitionEnd'],
       'transition': ['transform', 'transitionend']
     },
-    el = $('<div></div>').get(0),
+    el = document.createElement('div'),
     t
 
-    for(t in transitions){
-      if(el.style[t] !== undefined ) {
+    for(t in transitions) {
+      if(el.style[t] !== undefined) {
         transitionName = t
         transformName = transitions[t][0]
         transitionEndEvent = transitions[t][1]
+        return
       }
-      return
     }
   })()
 
@@ -426,7 +411,7 @@
 
     // css3动画是异步无阻塞的，防止同时重绘
     requestAnimationFrame(function() {
-      // $el.get(0).offsetWidth
+      $el.get(0).offsetWidth
       properties[transitionName] = '0.4s'
       $el.css(properties).emulateTransitionEnd(function() {
         // 过渡动画结束后移除 transition
@@ -447,7 +432,7 @@
         $el = $(this),
         endtimer
 
-    duration = duration || 416
+    duration = duration || 500
 
     // 只执行一次
     $el.one(transitionEndEvent, function() {
@@ -498,6 +483,8 @@
           $fromPageBody = $('.spa-page-body', $fromPage),
           toStartCss = {opacity: 0},
           toEndCss = {opacity: 1}
+
+      toStartCss.opacity = 0
       
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -515,122 +502,14 @@
         callback()
       })      
     },
-    fadeInLeft: function($toPage, $fromPage, callback) {
-      var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage),
-          toStartCss = {opacity: 0},
-          toEndCss = {opacity: 1}
-
-      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
-
-      $toPageBody.css(toStartCss)
-      togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
-        callback()
-      })
-    },
-    fadeOutRight: function($toPage, $fromPage, callback) {
-      var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage),
-          fromStartCss = {opacity: 0}
-
-      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
-
-      $fromPageBody.transition(fromStartCss, function() {
-        togglePagezIndex($fromPage, $toPage)
-        callback()
-      })
-    },
-    fadeInRight: function($toPage, $fromPage, callback) {
-      var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage),
-          toStartCss = {opacity: 0},
-          toEndCss = {opacity: 1}
-
-      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
-
-      $toPageBody.css(toStartCss)
-      togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
-        callback()
-      })
-    },
-    fadeOutLeft: function($toPage, $fromPage, callback) {
-      var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage),
-          fromStartCss = {opacity: 0}
-
-      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
-
-      $fromPageBody.transition(fromStartCss, function() {
-        togglePagezIndex($fromPage, $toPage)
-        callback()
-      })
-    },
-    fadeInUp: function($toPage, $fromPage, callback) {
-      var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage),
-          toStartCss = {opacity: 0},
-          toEndCss = {opacity: 1}
-
-      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
-      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
-
-      $toPageBody.css(toStartCss)
-      togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
-        callback()
-      })
-    },
-    fadeOutDown: function($toPage, $fromPage, callback) {
-      var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage),
-          fromStartCss = {opacity: 0}
-
-      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
-
-      $fromPageBody.transition(fromStartCss, function() {
-        togglePagezIndex($fromPage, $toPage)
-        callback()
-      })
-    },
-    fadeInDown: function($toPage, $fromPage, callback) {
-      var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage),
-          toStartCss = {opacity: 0},
-          toEndCss = {opacity: 1}
-
-      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
-      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
-
-      $toPageBody.css(toStartCss)
-      togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
-        callback()
-      })
-    },
-    fadeOutUp: function($toPage, $fromPage, callback) {
-      var $toPageBody = $('.spa-page-body', $toPage),
-          $fromPageBody = $('.spa-page-body', $fromPage),
-          fromStartCss = {opacity: 0}
-
-      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
-
-      $fromPageBody.transition(fromStartCss, function() {
-        togglePagezIndex($fromPage, $toPage)
-        callback()
-      })
-    },
     slideInLeft: function($toPage, $fromPage, callback) {
       var $toPageBody = $('.spa-page-body', $toPage),
           $fromPageBody = $('.spa-page-body', $fromPage),
           toStartCss = {},
           toEndCss = {}
 
-      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+      toStartCss[transformName] = 'translate(100%, 0)'
+      toEndCss[transformName] = 'translate(0%, 0)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -643,7 +522,7 @@
           $fromPageBody = $('.spa-page-body', $fromPage),
           fromStartCss = {}
 
-      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromStartCss[transformName] = 'translate(100%, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
@@ -656,8 +535,8 @@
           toStartCss = {},
           toEndCss = {}
 
-      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+      toStartCss[transformName] = 'translate(-100%, 0)'
+      toEndCss[transformName] = 'translate(0%, 0)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -670,7 +549,7 @@
           $fromPageBody = $('.spa-page-body', $fromPage),
           fromStartCss = {}
 
-      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromStartCss[transformName] = 'translate(-100%, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
@@ -683,8 +562,8 @@
           toStartCss = {},
           toEndCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
-      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
+      toStartCss[transformName] = 'translate(0, 100%)'
+      toEndCss[transformName] = 'translate(0, 0%)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -697,7 +576,7 @@
           $fromPageBody = $('.spa-page-body', $fromPage),
           fromStartCss = {}
 
-      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromStartCss[transformName] = 'translate(0, 100%)'
 
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
@@ -710,8 +589,8 @@
           toStartCss = {},
           toEndCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
-      toEndCss[transformName] = 'translate3d(0, 0%, 0)'
+      toStartCss[transformName] = 'translate(0, -100%)'
+      toEndCss[transformName] = 'translate(0, 0%)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -724,7 +603,7 @@
           $fromPageBody = $('.spa-page-body', $fromPage),
           fromStartCss = {}
 
-      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromStartCss[transformName] = 'translate(0, -100%)'
 
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
@@ -739,10 +618,10 @@
           toEndCss = {},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+      toStartCss[transformName] = 'translate(100%, 0)'
+      toEndCss[transformName] = 'translate(0%, 0)'
 
-      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromStartCss[transformName] = 'translate(-100%, 0)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -761,10 +640,10 @@
           toEndCss = {},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+      toStartCss[transformName] = 'translate(-100%, 0)'
+      toEndCss[transformName] = 'translate(0%, 0)'
 
-      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromStartCss[transformName] = 'translate(100%, 0)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -783,10 +662,10 @@
           toEndCss = {},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(-100%, 0, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+      toStartCss[transformName] = 'translate(-100%, 0)'
+      toEndCss[transformName] = 'translate(0%, 0)'
 
-      fromStartCss[transformName] = 'translate3d(100%, 0, 0)'
+      fromStartCss[transformName] = 'translate(100%, 0)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -805,10 +684,10 @@
           toEndCss = {},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(100%, 0, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+      toStartCss[transformName] = 'translate(100%, 0)'
+      toEndCss[transformName] = 'translate(0%, 0)'
 
-      fromStartCss[transformName] = 'translate3d(-100%, 0, 0)'
+      fromStartCss[transformName] = 'translate(-100%, 0)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -827,10 +706,10 @@
           toEndCss = {},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+      toStartCss[transformName] = 'translate(0, 100%)'
+      toEndCss[transformName] = 'translate(0%, 0)'
 
-      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromStartCss[transformName] = 'translate(0, -100%)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -849,10 +728,10 @@
           toEndCss = {},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+      toStartCss[transformName] = 'translate(0, -100%)'
+      toEndCss[transformName] = 'translate(0%, 0)'
 
-      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromStartCss[transformName] = 'translate(0, 100%)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -871,10 +750,10 @@
           toEndCss = {},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, -100%, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+      toStartCss[transformName] = 'translate(0, -100%)'
+      toEndCss[transformName] = 'translate(0%, 0)'
 
-      fromStartCss[transformName] = 'translate3d(0, 100%, 0)'
+      fromStartCss[transformName] = 'translate(0, 100%)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -893,10 +772,10 @@
           toEndCss = {},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, 100%, 0)'
-      toEndCss[transformName] = 'translate3d(0%, 0, 0)'
+      toStartCss[transformName] = 'translate(0, 100%)'
+      toEndCss[transformName] = 'translate(0%, 0)'
 
-      fromStartCss[transformName] = 'translate3d(0, -100%, 0)'
+      fromStartCss[transformName] = 'translate(0, -100%)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -913,8 +792,8 @@
           toStartCss = {},
           toEndCss = {}
 
-      toStartCss[transformName] = 'scale3d(0, 0, 0)'
-      toEndCss[transformName] = 'scale3d(1, 1, 1)'
+      toStartCss[transformName] = 'scale(0, 0)'
+      toEndCss[transformName] = 'scale(1, 1)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -927,7 +806,7 @@
           $fromPageBody = $('.spa-page-body', $fromPage),
           fromStartCss = {}
 
-      fromStartCss[transformName] = 'scale3d(0, 0, 0)'
+      fromStartCss[transformName] = 'scale(0, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
@@ -941,12 +820,12 @@
           toStartCss = {left: 'auto', width: pageBodyWidth},
           toEndCss = {}
       
-      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
+      toEndCss[transformName] = 'translate(0px, 0)'
 
       $toPageBody.css(toStartCss)
       pageBodyWidth = pageBodyWidth * 2 - $toPageBody.prop('clientWidth')
       toStartCss = {width: pageBodyWidth}
-      toStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
+      toStartCss[transformName] = 'translate(' + pageBodyWidth + 'px, 0)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -961,7 +840,7 @@
           fromStartCss = {},
           fromEndCss = {width: 'auto', left: 0}
 
-      fromStartCss[transformName] = 'translate3d(' + prevPageBodyWidth + 'px, 0, 0)'
+      fromStartCss[transformName] = 'translate(' + prevPageBodyWidth + 'px, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
@@ -976,12 +855,12 @@
           toStartCss = {right: 'auto', width: pageBodyWidth},
           toEndCss = {}
       
-      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
+      toEndCss[transformName] = 'translate(0px, 0)'
       
       $toPageBody.css(toStartCss)
       pageBodyWidth = pageBodyWidth * 2 - $toPageBody.prop('clientWidth')
       toStartCss = {width: pageBodyWidth}
-      toStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
+      toStartCss[transformName] = 'translate(' + (0 - pageBodyWidth) + 'px, 0)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -996,7 +875,7 @@
           fromStartCss = {},
           fromEndCss = {width: 'auto', right: 0}
 
-      fromStartCss[transformName] = 'translate3d(' + (0 - prevPageBodyWidth) + 'px, 0, 0)'
+      fromStartCss[transformName] = 'translate(' + (0 - prevPageBodyWidth) + 'px, 0)'
 
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
@@ -1011,12 +890,12 @@
           toStartCss = {top: 'auto', height: pageBodyHeight},
           toEndCss = {}
       
-      toEndCss[transformName] = 'translate3d(0, 0px, 0)'
+      toEndCss[transformName] = 'translate(0, 0px)'
       
       $toPageBody.css(toStartCss)
       pageBodyHeight = pageBodyHeight * 2 - $toPageBody.prop('clientHeight')
       toStartCss = {height: pageBodyHeight}
-      toStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
+      toStartCss[transformName] = 'translate(0, ' + pageBodyHeight + 'px)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -1031,7 +910,7 @@
           fromStartCss = {},
           fromEndCss = {height: 'auto', top: 0}
 
-      fromStartCss[transformName] = 'translate3d(0, ' + prevPageBodyHeight + 'px, 0)'
+      fromStartCss[transformName] = 'translate(0, ' + prevPageBodyHeight + 'px)'
 
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
@@ -1046,12 +925,12 @@
           toStartCss = {bottom: 'auto', height: pageBodyHeight},
           toEndCss = {}
       
-      toEndCss[transformName] = 'translate3d(0, 0px, 0)'
+      toEndCss[transformName] = 'translate(0, 0px)'
       
       $toPageBody.css(toStartCss)
       pageBodyHeight = pageBodyHeight * 2 - $toPageBody.prop('clientHeight')
       toStartCss = {height: pageBodyHeight}
-      toStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
+      toStartCss[transformName] = 'translate(0, ' + (0 - pageBodyHeight) + 'px)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -1066,7 +945,7 @@
           fromStartCss = {},
           fromEndCss = {height: 'auto', bottom: 0}
 
-      fromStartCss[transformName] = 'translate3d(0, ' + (0 - prevPageBodyHeight) + 'px, 0)'
+      fromStartCss[transformName] = 'translate(0, ' + (0 - prevPageBodyHeight) + 'px)'
 
       $fromPageBody.transition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
@@ -1081,12 +960,12 @@
           toStartCss = {left: 'auto', width: pageBodyWidth},
           fromStartCss = {}
             
-      toStartCss[transformName] = 'translate3d(0, 0, 0)'
+      toStartCss[transformName] = 'translate(0, 0)'
 
       $toPageBody.css(toStartCss)
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
       $toPageBody.css({width: pageBodyWidth})
-      fromStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
+      fromStartCss[transformName] = 'translate(' + (0 - pageBodyWidth) + 'px, 0)'
 
       togglePagezIndex($toPage, $fromPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -1100,7 +979,7 @@
           prevPageBodyWidth = $fromPageBody.width(),
           toStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
+      toStartCss[transformName] = 'translate(0px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1115,12 +994,12 @@
           toStartCss = {right: 'auto', width: pageBodyWidth},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, 0, 0)'
+      toStartCss[transformName] = 'translate(0, 0)'
             
       $toPageBody.css(toStartCss)
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
       $toPageBody.css({width: pageBodyWidth})
-      fromStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
+      fromStartCss[transformName] = 'translate(' + pageBodyWidth + 'px, 0)'
 
       togglePagezIndex($toPage, $fromPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -1134,7 +1013,7 @@
           prevPageBodyWidth = $fromPageBody.width(),
           toStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
+      toStartCss[transformName] = 'translate(0px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1149,12 +1028,12 @@
           toStartCss = {top: 'auto', height: pageBodyHeight},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, 0, 0)'
+      toStartCss[transformName] = 'translate(0, 0)'
       
       $toPageBody.css(toStartCss)
       pageBodyHeight = $toPageBody.height() * 2 - $toPageBody.prop('clientHeight')
       $toPageBody.css({height: pageBodyHeight})
-      fromStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
+      fromStartCss[transformName] = 'translate(0, ' + (0 - pageBodyHeight) + 'px)'
 
       togglePagezIndex($toPage, $fromPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -1168,7 +1047,7 @@
           prevPageBodyHeight = $fromPageBody.height(),
           toStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
+      toStartCss[transformName] = 'translate(0, 0px)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1183,12 +1062,12 @@
           toStartCss = {bottom: 'auto', height: pageBodyHeight},
           fromStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, 0, 0)'
+      toStartCss[transformName] = 'translate(0, 0)'
       
       $toPageBody.css(toStartCss)
       pageBodyHeight = $toPageBody.height() * 2 - $toPageBody.prop('clientHeight')
       $toPageBody.css({height: pageBodyHeight})
-      fromStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
+      fromStartCss[transformName] = 'translate(0, ' + pageBodyHeight + 'px)'
 
       togglePagezIndex($toPage, $fromPage)
       $fromPageBody.transition(fromStartCss, function() {
@@ -1202,7 +1081,7 @@
           prevPageBodyHeight = $fromPageBody.height(),
           toStartCss = {}
 
-      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
+      toStartCss[transformName] = 'translate(0, 0px)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1223,11 +1102,11 @@
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
       
       toStartCss = {width: pageBodyWidth}
-      toStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
+      toStartCss[transformName] = 'translate(' + pageBodyWidth + 'px, 0)'
 
-      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
+      toEndCss[transformName] = 'translate(0px, 0)'
 
-      fromStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
+      fromStartCss[transformName] = 'translate(' + (0 - pageBodyWidth) + 'px, 0)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -1247,8 +1126,8 @@
           fromStartCss = {},
           fromEndCss = {width: 'auto', left: 0}
 
-      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
-      fromStartCss[transformName] = 'translate3d(' + prevPageBodyWidth + 'px, 0, 0)'
+      toStartCss[transformName] = 'translate(0px, 0)'
+      fromStartCss[transformName] = 'translate(' + prevPageBodyWidth + 'px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1272,10 +1151,10 @@
       pageBodyWidth = $toPageBody.width() * 2 - $toPageBody.prop('clientWidth')
 
       toStartCss = {width: pageBodyWidth}
-      toStartCss[transformName] = 'translate3d(' + (0 - pageBodyWidth) + 'px, 0, 0)'
-      fromStartCss[transformName] = 'translate3d(' + pageBodyWidth + 'px, 0, 0)'
+      toStartCss[transformName] = 'translate(' + (0 - pageBodyWidth) + 'px, 0)'
+      fromStartCss[transformName] = 'translate(' + pageBodyWidth + 'px, 0)'
 
-      toEndCss[transformName] = 'translate3d(0px, 0, 0)'
+      toEndCss[transformName] = 'translate(0px, 0)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -1295,8 +1174,8 @@
           fromStartCss = {},
           fromEndCss = {width: 'auto', right: 0}
 
-      toStartCss[transformName] = 'translate3d(0px, 0, 0)'
-      fromStartCss[transformName] = 'translate3d(' + (0 - prevPageBodyWidth) + 'px, 0, 0)'
+      toStartCss[transformName] = 'translate(0px, 0)'
+      fromStartCss[transformName] = 'translate(' + (0 - prevPageBodyWidth) + 'px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1320,9 +1199,9 @@
       pageBodyHeight = $toPageBody.height() * 2 - $toPageBody.prop('clientHeight')
 
       toStartCss = {height: pageBodyHeight}
-      toStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
-      toEndCss[transformName] = 'translate3d(0, 0px, 0)'
-      fromStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
+      toStartCss[transformName] = 'translate(0, ' + pageBodyHeight + 'px)'
+      toEndCss[transformName] = 'translate(0, 0px)'
+      fromStartCss[transformName] = 'translate(0, ' + (0 - pageBodyHeight) + 'px)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -1342,8 +1221,8 @@
           fromStartCss = {},
           fromEndCss = {height: 'auto', top: 0}
 
-      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
-      fromStartCss[transformName] = 'translate3d(0, ' + prevPageBodyHeight + 'px, 0)'
+      toStartCss[transformName] = 'translate(0, 0px)'
+      fromStartCss[transformName] = 'translate(0, ' + prevPageBodyHeight + 'px)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1367,9 +1246,9 @@
       pageBodyHeight = $toPageBody.height() * 2 - $toPageBody.prop('clientHeight')
 
       toStartCss = {height: pageBodyHeight}
-      toStartCss[transformName] = 'translate3d(0, ' + (0 - pageBodyHeight) + 'px, 0)'
-      toEndCss[transformName] = 'translate3d(0, 0px, 0)'
-      fromStartCss[transformName] = 'translate3d(0, ' + pageBodyHeight + 'px, 0)'
+      toStartCss[transformName] = 'translate(0, ' + (0 - pageBodyHeight) + 'px)'
+      toEndCss[transformName] = 'translate(0, 0px)'
+      fromStartCss[transformName] = 'translate(0, ' + pageBodyHeight + 'px)'
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
@@ -1389,8 +1268,8 @@
           fromStartCss = {},
           fromEndCss = {height: 'auto', bottom: 0}
 
-      toStartCss[transformName] = 'translate3d(0, 0px, 0)'
-      fromStartCss[transformName] = 'translate3d(0, ' + (0 - prevPageBodyHeight) + 'px, 0)'
+      toStartCss[transformName] = 'translate(0, 0px)'
+      fromStartCss[transformName] = 'translate(0, ' + (0 - prevPageBodyHeight) + 'px)'
 
       togglePagezIndex($fromPage, $toPage)
       $toPageBody.transition(toStartCss, function() {
@@ -1417,12 +1296,21 @@
         $fromPageBody = $('.spa-page-body', $fromPage),
         toStartCss = {}
     
+    // 如果不支持css3
+    !transformName && (animate = 'defaultInOut')
+
     transitPageAnimatesName[animate] || (animate = 'defaultInOut')
+
+    // 如果是首次打开的视图，强制设置为defaultInOut
+    if(transitFirst) {
+      transitFirst = false
+      animate = 'defaultInOut'
+    }
 
     // 还原之前转场过程中被修改的视图样式
     toStartCss.opacity = 1
-    if(!isPanelAnimate(animate)) {
-      toStartCss[transformName] = 'translate3d(0, 0, 0) scale3d(1, 1, 1)'
+    if(!isPanelAnimate(animate) && transformName) {
+      toStartCss[transformName] = 'translate(0, 0) scale(1, 1)'
     }
     $toPageBody.css(toStartCss)
 
@@ -1462,7 +1350,7 @@
     //页面的hash有匹配的路由规则
     if(isRegExp(routeReg)) {
       var classname = pageOptions.classname ? ' spa-page-' + pageOptions.classname : '',
-          $page = $('<div class="spa-page' + classname + '"><div class="spa-page-bg"></div><div class="spa-page-body"></div></div>'),
+          $page = $('<div class="spa-page' + classname + '"><div class="spa-page-body"></div></div>'),
           pageId = uniqueID(),
           pageData,
           viewData
@@ -1483,7 +1371,7 @@
       viewsdata[pageId] = pageData
 
       // 渲染视图
-      $page.appendTo($('body'))
+      // $body.append($page)
 
       // 缓存视图
       $doc.trigger('spa:viewcache', {view: $page})
@@ -1492,15 +1380,14 @@
       viewData = pageOptions.view.call($page, pageData)
       
       if($.isPlainObject(viewData)) {
-        $page.trigger('spa:initpage', viewData)
+        $doc.trigger('spa:initpage', [$page, viewData])
       }      
     }
   })
 
   //初始化页面
-  $doc.on('spa:initpage', '.spa-page', function(event, viewData) {
-    var $page = $(event.currentTarget),
-        pageId = $page.data('id'),
+  $doc.on('spa:initpage', function(event, $page, viewData) {
+    var pageId = $page.data('id'),
         pageData = viewsdata[pageId],
         pageOptions = routes[pageData.route]
             
@@ -1511,16 +1398,19 @@
 
     pageData.viewData = viewData
 
-    // 渲染视图内容
-    $('.spa-page-body', $page).html(viewData.body)    
+    // 关闭loader
+    $doc.trigger('spa:closeloader')
 
-    // 初始化视图
-    pageOptions.init.call($page, pageData)
-    
+    // 渲染视图内容
+    $('.spa-page-body', $page).html(viewData.body)
+    $body.append($page)
+
     // 打开页面视图
     $page.trigger('spa:openpage')
 
-    $doc.trigger('spa:closeloader')
+    // 初始化视图
+    // pageOptions.init.call($page, pageData)
+    
   })
   
   //打开页面
@@ -1535,12 +1425,15 @@
         requestData = pageData.requestData,
         viewData = pageData.viewData,
         title = pushData.title || viewData.title,
+        // 是否是返回操作
+        isBack = false,
         animate = pushData.animate || route.animate
     
     // 第一次没有页面视图的时候
     // 新建一个占位页面视图
     if(!$curPage) {
-      $curPage = $('<div class="spa-page spa-page-empty"><div class="spa-page-body"></div></div>').appendTo($('body'))
+      $body.append('<div class="spa-page spa-page-empty"><div class="spa-page-body"></div></div>')
+      $curPage = $('.spa-page-empty')
     }
 
     var curPageId = $curPage.data('id'),
@@ -1553,6 +1446,7 @@
       if(prevAnimate && !$.isFunction(prevAnimate)) {
         animate = transitPageAnimatesName[prevAnimate]
       }
+      isBack = true
     }
     
     var beforeclose,
@@ -1581,34 +1475,63 @@
     // $doc.trigger('spa:opencover')
             
     var callback = function() {
+      if(!$page.data('spa:init')) {
+        $page.data('spa:init', true)
+        route.init.call($page, pageData)
+
+        // 打开之前还原spa-scroll-touch
+        if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
+          $('.spa-scroll', $page).addClass('spa-scroll-touch')
+        }     
+      }
+
       route.afteropen.call($page, pageData)
 
       // 关闭之后清除spa-scroll-touch
-      $('.spa-scroll', $curPage).removeClass('spa-scroll-touch')
+      if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
+        $('.spa-scroll', $curPage).removeClass('spa-scroll-touch')
+      }
 
       afterclose && afterclose.call($curPage, curPageData)
-      pageData.prevPage = $curPage
+      
+      // 返回操作不用设置prevPage
+      if($curPage.hasClass('spa-panel') || !isBack) {
+        pageData.prevPage = $curPage
+      }
+
       $curPage = $page
       // $doc.trigger('spa:closecover')
       
       // 页面打开后，如果当前路由和当前页面不匹配，触发路由请求
       if(pageData.hash !== getHash()) {
+        // 还原isPrevent
+        isPrevent = false
+
         $win.trigger('popstate')
       } else {
         $.isFunction(afteropenCallback) && afteropenCallback.call($page)
+
+        // 还原isPrevent
+        isPrevent = false
       }
     }
-
-    // 打开之前还原spa-scroll-touch
-    $('.spa-scroll', $page).addClass('spa-scroll-touch')
 
     beforeclose && beforeclose.call($curPage, curPageData)
     
     route.beforeopen.call($page, pageData)
     
-    // 缓存页面最近一次载入的动画
-    pageData.prevAnimate = animate
-    
+    // 缓存页面最近一次载入的动画（非返回的情况）
+    !isBack && (pageData.prevAnimate = animate)
+
+    // 打开之前还原spa-scroll-touch
+    if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
+      $('.spa-scroll', $page).addClass('spa-scroll-touch')
+    }
+
+    // 修改prevPage的zIndex
+    if(!isBack) {
+      curPageData.prevPage && curPageData.prevPage.css({zIndex: pagezIndex})
+    }
     if(!$.isFunction(animate)) {
       transitPage($page, $curPage, animate, callback)
     } else {
@@ -1677,8 +1600,8 @@
 
       viewsdata[id] = panelData
 
-      //初始化页面数据    
-      $panel.appendTo($body)
+      //初始化页面数据
+      // $body.append($panel)  
 
       //缓存面板
       $doc.trigger('spa:viewcache', {view: $panel})
@@ -1687,15 +1610,14 @@
       viewData = panelOptions.view.call($panel, panelData)
             
       if($.isPlainObject(viewData)) {
-        $panel.trigger('spa:initpanel', viewData)
+        $panel.trigger('spa:initpanel', [$panel, viewData])
       }
     }
   })
 
   //初始化面板
-  $doc.on('spa:initpanel', '.spa-panel', function(event, viewData) {
-    var $panel = $(event.currentTarget),
-        panelId = $panel.data('id'),
+  $doc.on('spa:initpanel', function(event, $panel, viewData) {
+    var panelId = $panel.data('id'),
         panelData = viewsdata[panelId],
         pushData = panelData.pushData,
         panelOptions = panels[panelId]
@@ -1709,10 +1631,12 @@
 
     // 渲染视图内容
     $('.spa-page-body', $panel).html(viewData.body)
+    $body.append($panel)
 
     // 执行初始化回调函数    
-    panelOptions.init.call($panel, panelData)
+    // panelOptions.init.call($panel, panelData)
 
+    // 关闭loader
     $doc.trigger('spa:closeloader')
     
     //触发打开页面事件
@@ -1734,13 +1658,18 @@
     pushData || (pushData = {})
     
     if($panel) {
+      // 阻塞转场
+      if(isPrevent) {
+        return false
+      }
+      isPrevent = true
+
       var panelOptions = panels[id],
           animate = pushData.animate || panelOptions.animate
       
       // 如果当前页面是面板，则先收起之前的面板，再打开新面板
       if($curPage.hasClass('spa-panel')) {
-        var curPageData = viewsdata($curPage.data('id')),
-            $prevPage = curPageData.prevPage
+        var $prevPage = viewsdata($curPage.data('id')).prevPage
         
         $prevPage.trigger('spa:openpage', [function() {
           $doc.trigger('spa:openpanel', [id, pushData])
@@ -1755,21 +1684,44 @@
       panelData.pushData = pushData
           
       // $doc.trigger('spa:opencover')
-
-      // 打开之前还原spa-scroll-touch
-      $('.spa-scroll', $panel).addClass('spa-scroll-touch')
       
       panelOptions.beforeopen.call($panel, panelData)
 
       var callback = function() {
+        if(!$panel.data('spa:init')) {
+          $panel.data('spa:init', true)
+          panelOptions.init.call($panel, panelData)
+
+          // 打开之前还原spa-scroll-touch
+          if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
+            $('.spa-scroll', $panel).addClass('spa-scroll-touch')
+          }
+
+        }
+
         panelOptions.afteropen.call($panel, panelData)  
         panelData.prevPage = $curPage
         $curPage = $panel
         // $doc.trigger('spa:closecover')
+
+        // 还原isPrevent
+        isPrevent = false
       }
 
       // 缓存页面最近一次载入的动画
       panelData.prevAnimate = animate
+
+      // 打开之前还原spa-scroll-touch
+      if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
+        $('.spa-scroll', $panel).addClass('spa-scroll-touch')
+      }
+
+      // 修改prevPage的zIndex
+      var curPageId = $curPage.data('id'),
+          curPageData = viewsdata[curPageId] || {}
+
+      curPageData.prevPage && curPageData.prevPage.css({zIndex: pagezIndex})
+
       
       if(!$.isFunction(animate)) {
         transitPage($panel, $curPage, animate, callback)
@@ -1861,6 +1813,7 @@
         cleanupkey = cleanupsplit[1]
 
         cleanupcache = cleanuptype == 'page' ? pagescache : panelscache
+        $('img', cleanupcache[cleanupkey]).remove()
         cleanupcache[cleanupkey].html('').remove()
         delete cleanupcache[cleanupkey]
       })
@@ -1906,14 +1859,26 @@
     var hash = options.hash || '',
         title = options.title || '',
         pushData = options.pushData || {},
-        replace = options.replace || false
+        replace = options.replace || false,
+        url = options.url || ''
 
     title && (document.title = title)
-    hash = '#' + hash
+    hash = url + '#' + hash
     
     if(replace) {
       history.replaceState(pushData, title, hash)
     } else {
+      // 如果在页面视图中，并且路由请求和当前路由重复，则不继续执行
+      if(!$curPage.hasClass('spa-panel') && hashhistory.length && '#' + hashhistory[hashhistory.length - 1] === hash) {
+        return
+      }
+
+      // 阻塞转场
+      if(isPrevent) {
+        return false
+      }
+      isPrevent = true
+
       history.pushState(pushData, title, hash)
       
       //fix: 当$win.trigger('popstate')后,popstate事件对象无法获取到原生事件对象的state属性
@@ -1956,14 +1921,24 @@
     options.style && (loaderStyle = options.style)
   })
   
+  // loading显示延迟
+  var loaderTimer
+
   // 显示loading层
   $doc.on('spa:openloader', function(event) {
-    $loader.show()
+    loaderTimer = setTimeout(function() {
+      $loader.show()
+    }, 300)
   })
 
   // 隐藏loading层
   $doc.on('spa:closeloader', function(event) {
-    $loader.hide()
+    if(loaderTimer) {
+      clearTimeout(loaderTimer)
+      loaderTimer = undefined
+    } else {
+      $loader.hide()
+    }
   })
     
   
@@ -1971,28 +1946,35 @@
    * 应用启动
    */
   
-  $doc.on('spa:boot', function(event) {
+  $doc.on('spa:boot', function(event, options) {
     // 初始化$body
     $body = $('body')
+
     // 注入样式
-    $doc.trigger('spa:addstyle', viewStyle)
+    $doc.trigger('spa:addstyle', viewStyle + loaderStyle)
+
+    // 插入全屏模式监控层和loading层
+    // $body.append('<div class="spa-fullscreen"></div><div class="spa-cover"></div><div class="spa-loader">' + loaderBody + '</div>')
+    $body.append('<div class="spa-fullscreen"></div><div class="spa-loader">' + loaderBody + '</div>')
+
     // 调整全屏模式
-    $fullscreen = $('<div class="spa-fullscreen"></div>').prependTo($body)
+    $fullscreen = $('.spa-fullscreen')
     $doc.trigger('spa:adjustfullscreen')
 
     // 初始化$cover
-    // $cover = $('<div class="spa-cover"></div>').appendTo($('body'))
+    // $cover = $('.spa-cover')
     // $cover.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)   
 
     // 初始化loading层
-    $doc.trigger('spa:addstyle', loaderStyle)
-    $loader = $('<div class="spa-loader">' + loaderBody + '</div>').appendTo($('body'))
+    $loader = $('.spa-loader')
     $loader.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)
 
     // 启动完成
     hasBoot = true
     // 激活路由请求
     $win.trigger('popstate')
+
+    options && options.callback && options.callback()
   })
   
 })(window.Zepto || window.jQuery || window.$)
