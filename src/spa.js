@@ -1920,6 +1920,7 @@
   // 显示loading层
   $doc.on('spa:openloader', function(event) {
     loaderTimer = setTimeout(function() {
+      loaderTimer = undefined
       $loader.show()
     }, 300)
   })
