@@ -2,7 +2,7 @@
   "name": "spa",
   "repo": "zhaoda/spa",
   "description": "A webapp framework for routing control and view transitions",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "keywords": ["spa", "webapp", "framework"],
   "dependencies": {},
   "development": {},
