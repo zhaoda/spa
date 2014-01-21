@@ -305,7 +305,7 @@
   
   //验证是否是正则表达式对象
   function isRegExp(obj) {
-    return toString.call(obj) == '[object RegExp]'
+    return Object.prototype.toString.call(obj) == '[object RegExp]'
   }
   
   //路由的字符串表达式转正则表达式
