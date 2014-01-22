@@ -108,6 +108,7 @@
 
   ;(function() {
     var requestID,
+        resizeID,
         winHeight,
         winWidth
     
@@ -148,7 +149,12 @@
         requestID = undefined
       }
       requestID = requestAnimationFrame(adjust)
-    })  
+    })
+
+    $win.on('resize', function(event) {
+      clearTimeout(resizeID)
+      resizeID = setTimeout(adjust, 200)
+    })
   })()
     
   
