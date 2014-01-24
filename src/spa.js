@@ -136,12 +136,20 @@
       }
     }
     
-    $win.on('spa:adjustfullscreen orientationchange', function(event) {
+    $win.on('spa:adjustfullscreen' + ($.os.ios?' orientationchange':''), function(event) {
       if(requestID !== undefined) {
         cancelAnimationFrame(requestID)
         requestID = undefined
       }
       requestID = requestAnimationFrame(adjust)
+    })
+    // android下orientationchange触发的时候页面很可能还没有渲染好
+    // 所以马上取数据或者短延时取数据都有问题。
+    // 暂时没有特别好的思路来处理这个问题
+    $.os.android && $win.on('orientationchange', function(event) {
+      clearTimeout(resizeID)
+
+      resizeID = setTimeout(adjust, 500)
     })
 
     $win.on('resize', function(event) {
