@@ -14,9 +14,9 @@ define({
     </div>\
   </div>\
   ',
-  init: function() {
+  init: function(pageData) {
     var $view = this
     
-    $('.page-container-navbar', $view).trigger('scroll.spa')
+    $('.page-container-navbar', $view).trigger('spa:scroll')
   }
 })

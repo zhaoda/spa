@@ -1,9 +1,22 @@
+code {
+  white-space: normal;
+  word-break: break-all;
+}
+
 .navbar-header {
   position: absolute;
   left: 50%;
 }
 .navbar-header .navbar-brand {
   margin-left: -50%;
+}
+
+.page-container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
 }
 
 .page-container-navbar {
@@ -53,6 +66,23 @@
   width: 100%;
 }
 
+#spa-panel-demoPanelTransit .container {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 200px;
+  height: 200px;
+  padding: 0;
+}
+#spa-panel-demoPanelTransit .spa-page-body {
+  background: #34495E;
+  color: #ECF0F1;
+}
+#spa-panel-demoPanelTransit ul {
+  margin: 20px 0;
+}
 
 
 

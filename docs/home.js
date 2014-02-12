@@ -19,7 +19,7 @@ define({
       来快速构建你的WebApp；\
       </p>\
       <p>\
-      SPA需要用<a href="http://jquery.com/" target="_blank">jQuery</a>和<a href="http://ricostacruz.com/jquery.transit/" target="_blank">jquery.transit</a>支持DOM操作和CSS3动画，\
+      SPA依赖<a href="http://zeptojs.com/" target="_blank">Zepto</a>或<a href="http://jquery.com/" target="_blank">jQuery</a>，\
       并且每个视图可以通过<a href="http://requirejs.org/" target="_blank">RequireJS</a>、<a href="http://seajs.org/docs/" target="_blank">Sea.js</a>等CommonJS解决方案或者自定义的方式进行模块化组织、异步加载；\
       </p>\
       <p>\
@@ -29,6 +29,11 @@ define({
       <iframe src="http://ghbtns.com/github-btn.html?user=zhaoda&repo=spa&type=watch" allowtransparency="true" frameborder="0" scrolling="0" width="53" height="20"></iframe>\
       <iframe src="http://ghbtns.com/github-btn.html?user=zhaoda&repo=spa&type=fork" allowtransparency="true" frameborder="0" scrolling="0" width="53" height="20"></iframe>\
       <iframe src="http://ghbtns.com/github-btn.html?user=zhaoda&type=follow" allowtransparency="true" frameborder="0" scrolling="0" width="132" height="20"></iframe>\
+      </p>\
+      <p>\
+      <a href="https://travis-ci.org/zhaoda/spa" title="Build Status" target="_blank"><img src="https://travis-ci.org/zhaoda/spa.png?branch=master"/></a>\
+      <a href="https://david-dm.org/zhaoda/spa#info=devDependencies" title="Dependency status" target="_blank"><img src="https://david-dm.org/zhaoda/spa/dev-status.png"/></a>\
+      <a href="https://sourcegraph.com/github.com/zhaoda/spa" title="Total views" target="_blank"><img src="https://sourcegraph.com/api/repos/github.com/zhaoda/spa/counters/views.png"/></a>\
       </p>\
       <div class="page-header"><h1>为什么使用SPA</h1></div>\
       <h3>提供快速的开发实现</h3>\
@@ -87,18 +92,18 @@ var pageHome = {\n\
   view: function() {\n\
     var $page = this\n\
     requirejs(["home"], function(viewData) {\n\
-      $page.trigger("initview.spa", viewData)\n\
+      $doc.trigger("spa:initview", [$page, viewData])\n\
     })\n\
   }\n\
 }\n\
 \n\
-$doc.trigger("route.spa", [pageHome])\n\
+$doc.trigger("spa:route", [pageHome])\n\
       </pre>\
       <p>\
-      除了用户操作，还可以通过<code>navigate.spa</code>事件主动进行路由请求。\
+      除了用户操作，还可以通过<code>spa:navigate</code>事件主动进行路由请求。\
       </p>\
       <pre>\
-$doc.trigger("navigate.spa", {\n\
+$doc.trigger("spa:navigate", {\n\
   hash: "go/to/some/pageview"\n\
 })\
       </pre>\
@@ -113,13 +118,12 @@ $doc.trigger("navigate.spa", {\n\
       <p>\
       页面视图是用一组<code>&lt;div&gt;</code>节点构造的容器，模拟成<code>&lt;body&gt;</code>节点承载视图内容并覆盖整个视图区域；\
       <code>.spa-page-<em>customclassname</em></code>区分不同视图，添加自定义样式；\
-      每个节点的背景色默认透明，<code>.spa-page-bg</code>节点可以做半透明背景色和背景色透明渐变动画；\
+      每个节点的背景色默认透明；\
       <code>.spa-page-body</code>节点用来承载内容，通常在不需要半透明背景色的视图中，视图的背景色应该设置到该节点；\
       </p>\
       <pre>\
 &lt;!--页面视图的DOM结构--&gt;\n\
 &lt;div class="spa-page spa-page-<em>customclassname</em>"&gt;\n\
-  &lt;div class="spa-page-bg"&gt;&lt;/div&gt;\n\
   &lt;div class="spa-page-body"&gt;\n\
     &lt;!--视图内容会被渲染到这里--&gt;\n\
   &lt;/div&gt;\n\
@@ -137,12 +141,12 @@ var demoNewPage = {\n\
   view: function() {\n\
     var $page = this\n\
     requirejs(["demo.newpage"], function(viewData) {\n\
-      $page.trigger("initview.spa", viewData)\n\
+      $doc.trigger("spa:initview", [$page, viewData])\n\
     })\n\
   }\n\
 }\n\
 \n\
-$doc.trigger("route.spa", [demoNewPage])\n\
+$doc.trigger("spa:route", [demoNewPage])\n\
       </pre>\
       <h3>面板视图</h3>\
       <p>\
@@ -150,7 +154,7 @@ $doc.trigger("route.spa", [demoNewPage])\n\
       </p>\
       <pre>\
 //打开面板\n\
-$doc.trigger("openpanel.spa", [<em>panelid</em>, <em>pushData</em>])\n\
+$doc.trigger("spa:openpanel", [<em>panelid</em>, <em>pushData</em>])\n\
       </pre>\
       <p>\
       面板视图的容器结构是在页面视图容器结构的基础上进行扩展；\
@@ -179,7 +183,7 @@ var demoPanelSidemenu = {\n\
   view: function() {\n\
     var $panel = this\n\
     requirejs(["demo.panelsidemenu"], function(viewData) {\n\
-      $panel.trigger("initpanel.spa", viewData)\n\
+      $panel.trigger("spa:initpanel", viewData)\n\
     })\n\
   }\n\
 }\n\
@@ -192,7 +196,7 @@ var demoPanelAlert = {\n\
   view: function() {\n\
     var $panel = this\n\
     requirejs(["demo.panelalert"], function(viewData) {\n\
-      $panel.trigger("initpanel.spa", viewData)\n\
+      $panel.trigger("spa:initpanel", viewData)\n\
     })\n\
   }\n\
 }\n\
@@ -205,32 +209,125 @@ var demoPanelConfirm = {\n\
   view: function() {\n\
     var $panel = this\n\
     requirejs(["demo.panelconfirm"], function(viewData) {\n\
-      $panel.trigger("initpanel.spa", viewData)\n\
+      $panel.trigger("spa:initpanel", viewData)\n\
     })\n\
   }\n\
 }\n\
 \n\
 //添加面板\n\
-$doc.trigger("panel.spa", [demoPanelSidemenu, demoPanelAlert, demoPanelConfirm])\n\
+$doc.trigger("spa:panel", [demoPanelSidemenu, demoPanelAlert, demoPanelConfirm])\n\
 \n\
 //点击按钮打开面板\n\
-$doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu, demoPanelAlert, demoPanelConfirm\n\
+$doc.trigger("spa:openpanel", [<em>panelid</em>]) //panelid = demoPanelSidemenu, demoPanelAlert, demoPanelConfirm\n\
       </pre>\
       <h3>转换动画</h3>\
       <p>\
-      SPA内置了26组视图转换动画，每组包含一个入场动画和一个相反的出场动画，比如<code>fadeIn & fadeOut</code>、<code>pushInRight & pushOutLeft</code>，\
-      其中有3组动画是只支持面板视图，比如<code>overlayInUp & overlayOutDown</code>，\
+      SPA内置了22组视图转换动画，每组包含一个入场动画和一个相反的出场动画，比如<code>fadeIn & fadeOut</code>、<code>pushInRight & pushOutLeft</code>，\
+      其中有12组动画是只支持面板视图，比如<code>overlayInUp & overlayOutDown</code>，\
       </p>\
       <p>\
-      可以通过<code>$doc.trigger("addTransitPageAnimates.spa", <em>Animates</em>)</code>添加自定义的视图转换动画；\
+      可以通过<code>$doc.trigger("spa:addTransitPageAnimates", <em>Animates</em>)</code>添加自定义的视图转换动画；\
       </p>\
       <p>\
       如果视图通过异步加载，将触发遮罩层和loading动画（可自定义）；\
       </p>\
+      <h4>页面视图转换动画</h4>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="default">default</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeIn">fadeIn</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="fadeOut">fadeOut</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideInLeft">slideInLeft</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideOutRight">slideOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideInRight">slideInRight</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideOutLeft">slideOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideInUp">slideInUp</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideOutDown">slideOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideInDown">slideInDown</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="slideOutUp">slideOutUp</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushInLeft">pushInLeft</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushOutRight">pushOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushInRight">pushInRight</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushOutLeft">pushOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushInUp">pushInUp</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushOutDown">pushOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushInDown">pushInDown</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="pushOutUp">pushOutUp</a>\
+      </p>\
+      <p>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="zoomIn">zoomIn</a>\
+      <a href="#demo/transitpage" class="btn btn-sm btn-info btn-transitpage" data-animate="zoomOut">zoomOut</a>\
+      </p>\
+      <h4>面板视图转换动画</h4>\
+      <p class="text-warning">注意：面板视图只支持正向的入场动画</p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="overlayInLeft">overlayInLeft</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">overlayOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="overlayInRight">overlayInRight</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">overlayOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="overlayInUp">overlayInUp</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">overlayOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="overlayInDown">overlayInDown</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">overlayOutUp</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="revealInLeft">revealInLeft</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">revealOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="revealInRight">revealInRight</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">revealOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="revealInUp">revealInUp</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">revealOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="revealInDown">revealInDown</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">revealOutUp</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="pushPartInLeft">pushPartInLeft</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">pushPartOutRight</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="pushPartInRight">pushPartInRight</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">pushPartOutLeft</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="pushPartInUp">pushPartInUp</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">pushPartOutDown</a>\
+      </p>\
+      <p>\
+      <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="pushPartInDown">pushPartInDown</a>\
+      <a href="#" class="btn btn-sm btn-default" disabled="disabled">pushPartOutUp</a>\
+      </p>\
       <div class="page-header"><h1>API文档和用例</h1></div>\
       <p>\
-      完善中……\
-      <!--a href="#api" class="btn btn-info btn-lg">API文档</a-->\
+      <a class="btn btn-lg btn-success" href="https://github.com/zhaoda/spa/wiki" target="_blank">spa wiki</a>\
       </p>\
       <div class="page-header"><h1>License</h1></div>\
       <p>\
@@ -239,8 +336,14 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
     </div>\
   </div>\
   ',
-  init: function() {
+  init: function(pageData) {
     var $view = this
+
+    // 获取hash
+    function getHash(url) {
+      url = url || location.href
+      return url.replace(/^[^#]*#?\/?(.*)\/?$/, '$1')
+    }
     
     $('pre', $view).each(function(i, e) { hljs.highlightBlock(e) })
     
@@ -249,9 +352,26 @@ $doc.trigger("openpanel.spa", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
       var $btn = $(this),
           panelid = $btn.attr('data-panel')
       
-      $doc.trigger('openpanel.spa', [panelid])
+      $doc.trigger('spa:openpanel', [panelid])
+    })
+
+    $view.on('click', '.btn-transitpage', function(event) {
+      event.preventDefault()
+      var $btn = $(this),
+          animate = $btn.attr('data-animate'),
+          hash = getHash($btn.attr('href'))
+      
+      $doc.trigger('spa:navigate', {hash: hash, pushData: {animate: animate}})
+    })
+
+    $view.on('click', '.btn-transitpanel', function(event) {
+      event.preventDefault()
+      var $btn = $(this),
+          animate = $btn.attr('data-animate')
+      
+      $doc.trigger('spa:openpanel', ['demoPanelTransit', {animate: animate}])
     })
     
-    $('.page-container-navbar', $view).trigger('scroll.spa')
+    $('.page-container-navbar', $view).trigger('spa:scroll')
   }
 })
