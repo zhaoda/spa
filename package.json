@@ -16,11 +16,18 @@
     "javascript",
     "framework"
   ],
-  "author": {
-    "name": "zhaoda",
-    "email": "zd6437@gmail.com",
-    "url": "http://zhaoda.net"
-  },
+  "author": [
+    {
+      "name": "zhaoda",
+      "email": "zd6437@gmail.com",
+      "url": "http://zhaoda.net"
+    },
+    {
+      "name": "linchao",
+      "email": "lin-chao@foxmail.com",
+      "url": "http://t.qq.com/otherc"
+    }
+  ],
   "license": {
     "type": "MIT",
     "url": "https://raw.github.com/zhaoda/spa/master/LICENSE"
