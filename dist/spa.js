@@ -1,7 +1,7 @@
 /*!
  * SPA v1.0.0
  * A webapp framework for routing control and view transitions
- * Copyright 2014 zhaoda <http://zhaoda.net>
+ * Copyright 2014  <>
  * Licensed under MIT https://raw.github.com/zhaoda/spa/master/LICENSE
  */
 
@@ -1508,9 +1508,14 @@
 
       afterclose && afterclose.call($curPage, curPageData)
       
-      // 返回操作不用设置prevPage
-      if($curPage.hasClass('spa-panel') || !isBack) {
-        pageData.prevPage = $curPage
+      if($curPage.hasClass('spa-panel')) {
+        $curPage.css({zIndex: pagezIndex})
+        pageData.prevPage && pageData.prevPage.css({zIndex: prevPagezIndex})
+      } else {
+        // 返回操作不用设置prevPage
+        if(!isBack) {
+          pageData.prevPage = $curPage
+        }
       }
 
       $curPage = $page
@@ -1735,7 +1740,6 @@
           curPageData = viewsdata[curPageId] || {}
 
       curPageData.prevPage && curPageData.prevPage.css({zIndex: pagezIndex})
-
       
       if(!$.isFunction(animate)) {
         transitPage($panel, $curPage, animate, callback)

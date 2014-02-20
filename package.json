@@ -16,11 +16,18 @@
     "javascript",
     "framework"
   ],
-  "author": {
-    "name": "zhaoda",
-    "email": "zd6437@gmail.com",
-    "url": "http://zhaoda.net"
-  },
+  "author": [
+    {
+      "name": "zhaoda",
+      "email": "zd6437@gmail.com",
+      "url": "http://zhaoda.net"
+    },
+    {
+      "name": "linchao",
+      "email": "lin-chao@foxmail.com",
+      "url": "http://t.qq.com/otherc"
+    }
+  ],
   "license": {
     "type": "MIT",
     "url": "https://raw.github.com/zhaoda/spa/master/LICENSE"
@@ -35,7 +42,7 @@
     "grunt-contrib-concat": "~0.3.0",
     "grunt-contrib-jshint": "~0.8.0",
     "grunt-contrib-copy": "~0.5.0",
-    "grunt-contrib-uglify": "~0.3.0"
+    "grunt-contrib-uglify": "~0.3.2"
   },
   "scripts": {
     "test": "grunt"
