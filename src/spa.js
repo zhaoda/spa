@@ -1501,9 +1501,14 @@
 
       afterclose && afterclose.call($curPage, curPageData)
       
-      // 返回操作不用设置prevPage
-      if($curPage.hasClass('spa-panel') || !isBack) {
-        pageData.prevPage = $curPage
+      if($curPage.hasClass('spa-panel')) {
+        $curPage.css({zIndex: pagezIndex})
+        pageData.prevPage && pageData.prevPage.css({zIndex: prevPagezIndex})
+      } else {
+        // 返回操作不用设置prevPage
+        if(!isBack) {
+          pageData.prevPage = $curPage
+        }
       }
 
       $curPage = $page
@@ -1728,7 +1733,6 @@
           curPageData = viewsdata[curPageId] || {}
 
       curPageData.prevPage && curPageData.prevPage.css({zIndex: pagezIndex})
-
       
       if(!$.isFunction(animate)) {
         transitPage($panel, $curPage, animate, callback)
