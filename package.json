@@ -1,7 +1,7 @@
 {
   "name": "spa",
   "title": "SPA",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "A webapp framework for routing control and view transitions",
   "directories": {
     "doc": "docs"
