@@ -1499,8 +1499,6 @@
         }     
       }
 
-      route.afteropen.call($page, pageData)
-
       // 关闭之后清除spa-scroll-touch
       if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
         $('.spa-scroll', $curPage).removeClass('spa-scroll-touch')
@@ -1517,6 +1515,8 @@
           pageData.prevPage = $curPage
         }
       }
+
+      route.afteropen.call($page, pageData)
 
       $curPage = $page
       // $doc.trigger('spa:closecover')
@@ -1718,8 +1718,8 @@
 
         }
 
-        panelOptions.afteropen.call($panel, panelData)  
         panelData.prevPage = $curPage
+        panelOptions.afteropen.call($panel, panelData)  
         $curPage = $panel
         // $doc.trigger('spa:closecover')
 
