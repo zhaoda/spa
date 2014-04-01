@@ -1713,8 +1713,8 @@
 
           // 打开之前还原spa-scroll-touch
           if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
-            // -webkit-overflow-scrolling: touch
-            // 带有这个属性，如果去修改z-index，会偶现闪屏。
+            // 带有-webkit-overflow-scrolling: touch
+            // 这个属性，如果去修改z-index，会偶现闪屏现象。
             // 不如一帧以后再添加这个class
             setTimeout(function() {
               $('.spa-scroll', $panel).addClass('spa-scroll-touch')
