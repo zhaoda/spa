@@ -1,5 +1,5 @@
 /*!
- * SPA v1.0.2
+ * SPA v1.0.3
  * A webapp framework for routing control and view transitions
  * Copyright 2014 zhaoda <http://zhaoda.net>
  * Licensed under MIT https://raw.github.com/zhaoda/spa/master/LICENSE
@@ -60,9 +60,9 @@
       // 框架样式
       viewStyle = 'body {position: relative; margin: 0; padding: 0; width: 100%; overflow: hidden;}\
         .spa-fullscreen {position: absolute; left: 0; top: 0; margin: 0; padding: 0; width: 100%; visibility: hidden; overflow: hidden; z-index: -1; }\
-        .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; -webkit-transform: translateZ(0); }\
+        .spa-page {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; z-index: 2000; -webkit-transform: translateZ(0); -webkit-backface-visibility: hidden; -webkit-transform-style: preserve-3d;}\
         .spa-page-bg {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; }\
-        .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; -webkit-transform: translateZ(0); }\
+        .spa-page-body {position: absolute; left: 0; top: 0; bottom: 0; right: 0; margin: 0; padding: 0; overflow: hidden; -webkit-transform: translateZ(0); -webkit-backface-visibility: hidden; -webkit-transform-style: preserve-3d;}\
         .spa-scroll {overflow: auto;}\
         .spa-scroll-touch {-webkit-overflow-scrolling: touch; }\
         .spa-scroll-x {overflow-y: hidden;}\
@@ -1713,7 +1713,13 @@
 
           // 打开之前还原spa-scroll-touch
           if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
-            $('.spa-scroll', $panel).addClass('spa-scroll-touch')
+            // 带有-webkit-overflow-scrolling: touch
+            // 这个属性，如果去修改z-index，会偶现闪屏现象。
+            // 不如一帧以后再添加这个class
+            setTimeout(function() {
+              $('.spa-scroll', $panel).addClass('spa-scroll-touch')
+            }, 17)
+            
           }
 
         }
