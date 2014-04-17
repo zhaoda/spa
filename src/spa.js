@@ -407,7 +407,7 @@
         transitionName = t
         transformName = transitions[t][0]
         transitionEndEvent = transitions[t][1]
-        return
+        break
       }
     }
   })()
