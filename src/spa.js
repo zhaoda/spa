@@ -86,6 +86,9 @@
     return $curPage
   }
 
+  // 设置版本号
+  $.spa.version = '1.0.4'
+
   /*
    * 插入样式
    */
@@ -1880,6 +1883,13 @@
         url = options.url || ''
 
     title && (document.title = title)
+    // hack在微信等webview中无法修改document.title的情况
+    var $iframe = $('<iframe src="/favicon.ico"></iframe>').on('load', function() {
+      setTimeout(function() {
+        $iframe.off('load').remove()
+      }, 0)
+    }).appendTo($body)
+
     hash = url + '#' + hash
     
     if(replace) {
@@ -1915,16 +1925,6 @@
     event.stopPropagation()
     event.preventDefault()
   }
-
-  // 显示遮罩层
-  // $doc.on('spa:opencover', function(event) {
-  //   $cover.show()
-  // })
-
-  // 隐藏遮罩层
-  // $doc.on('spa:closecover', function(event) {
-  //   $cover.hide()
-  // })
 
   
   /*
@@ -1978,10 +1978,6 @@
     // 调整全屏模式
     $fullscreen = $('.spa-fullscreen')
     $doc.trigger('spa:adjustfullscreen')
-
-    // 初始化$cover
-    // $cover = $('.spa-cover')
-    // $cover.on('click select mousedown mousemove mouseup touchstart touchmove touchend', preventEventHandle)   
 
     // 初始化loading层
     $loader = $('.spa-loader')
