@@ -225,14 +225,16 @@
   /*
    * fix body { overflow: hidden }
    * 阻塞body的滚动条
+   * 该特性适用于ios6，解决Safari收起地址栏自动全屏的问题，但是会resize后（比如启动输入法）的页面滑动崩溃
+   * 鉴于该特性已经不适用于ios7+，并且还带来更严重的bug，所以去掉
    */
-  $win.on('scroll', function(event) {
-    var innerHeight = $body && $body.data('innerHeight')
+  // $win.on('scroll', function(event) {
+  //   var innerHeight = $body && $body.data('innerHeight')
     
-    if(innerHeight && innerHeight !== window.innerHeight) {
-      $win.trigger('spa:adjustfullscreen')
-    }
-  })
+  //   if(innerHeight && innerHeight !== window.innerHeight) {
+  //     $win.trigger('spa:adjustfullscreen')
+  //   }
+  // })
 
   
   /*
