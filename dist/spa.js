@@ -1693,7 +1693,7 @@
       
       // 如果当前页面是面板，则先收起之前的面板，再打开新面板
       if($curPage.hasClass('spa-panel')) {
-        var $prevPage = viewsdata($curPage.data('id')).prevPage
+        var $prevPage = viewsdata[$curPage.data('id')].prevPage
         
         $prevPage.trigger('spa:openpage', [function() {
           $doc.trigger('spa:openpanel', [id, pushData])
