@@ -1361,7 +1361,7 @@
     
     //页面的hash有匹配的路由规则
     if(isRegExp(routeReg)) {
-      var classname = pageOptions.classname ? ' spa-page-' + pageOptions.classname : '',
+      var classname = (pageOptions.classname ? ' spa-page-' + pageOptions.classname : '')+(pageOptions.nocache?' no-cache':''),
           $page = $('<div class="spa-page' + classname + '"><div class="spa-page-body"></div></div>'),
           pageId = uniqueID(),
           pageData,
@@ -1386,7 +1386,7 @@
       // $body.append($page)
 
       // 缓存视图
-      $doc.trigger('spa:viewcache', {view: $page})
+      !pageOptions.nocache && $doc.trigger('spa:viewcache', {view: $page})
       
       // 获取视图的渲染数据
       viewData = pageOptions.view.call($page, pageData)
@@ -1503,7 +1503,10 @@
       }
 
       afterclose && afterclose.call($curPage, curPageData)
-      
+      //如果页面禁止缓存则删除页面
+      if($curPage.hasClass('no-cache')){
+          $curPage.remove()
+      }
       if($curPage.hasClass('spa-panel')) {
         $curPage.css({zIndex: pagezIndex})
         pageData.prevPage && pageData.prevPage.css({zIndex: prevPagezIndex})
