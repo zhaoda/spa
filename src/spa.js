@@ -1,6 +1,24 @@
 ;(function($) {
   'use strict';
 
+  // 兼容jQuery不支持$.os的问题
+  if(!$.os) {
+    var os = {},
+        ua = navigator.userAgent,
+        platform = navigator.platform,
+        android = ua.match(/(Android);?[\s\/]+([\d.]+)?/),
+        ipad = ua.match(/(iPad).*OS\s([\d_]+)/),
+        ipod = ua.match(/(iPod)(.*OS\s([\d_]+))?/),
+        iphone = !ipad && ua.match(/(iPhone\sOS)\s([\d_]+)/)
+
+    if(android) os.android = true, os.version = android[2]  
+    if(iphone && !ipod) os.ios = os.iphone = true, os.version = iphone[2].replace(/_/g, '.')
+    if(ipad) os.ios = os.ipad = true, os.version = ipad[2].replace(/_/g, '.')
+    if(ipod) os.ios = os.ipod = true, os.version = ipod[3] ? ipod[3].replace(/_/g, '.') : null
+
+    $.os = os
+  }
+
   var $win = $(window),
       // $(document)
       $doc = $(document),
@@ -10,8 +28,6 @@
       location = window.location,
       // 浏览器历史记录
       history = window.history,
-      // 是否是ios
-      isios = navigator.userAgent.toLowerCase().match(/(iphone|ipod|ipad)/),
       // popstate事件state数据中转
       historystate,
       // 框架是否已经启动
@@ -87,7 +103,7 @@
   }
 
   // 设置版本号
-  $.spa.version = '1.0.4'
+  $.spa.version = '1.0.7'
 
   /*
    * 插入样式
@@ -180,7 +196,7 @@
   })
 
   // ios设备才支持scrollfix
-  isios && $doc.on('touchstart', '.spa-scroll, .spa-scroll-x, .spa-scroll-y', function(event) {
+  $.os.ios && $doc.on('touchstart', '.spa-scroll, .spa-scroll-x, .spa-scroll-y', function(event) {
 
     var $target = $(event.currentTarget),
         scrollTop = $target.prop('scrollTop'),
@@ -418,7 +434,7 @@
   })()
 
   // $el.transition
-  $.fn.transition = function(properties, callback) {
+  $.fn.emulateTransition = function(properties, callback) {
     var $el = $(this)
 
     // css3动画是异步无阻塞的，防止同时重绘
@@ -436,6 +452,10 @@
 
 
     return $el
+  }
+
+  if(!$.fn.transition) {
+    $.fn.transition = $.fn.emulateTransition
   }
 
   // transitionEnd 回调
@@ -500,7 +520,7 @@
       
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         callback()
       })
     },
@@ -509,7 +529,7 @@
           $fromPageBody = $('.spa-page-body', $fromPage),
           fromStartCss = {opacity: 0}
 
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })      
@@ -525,7 +545,7 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         callback()
       })
     },
@@ -536,7 +556,7 @@
 
       fromStartCss[transformName] = 'translate(100%, 0)'
 
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -552,7 +572,7 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         callback()
       })
     },
@@ -563,7 +583,7 @@
 
       fromStartCss[transformName] = 'translate(-100%, 0)'
 
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -579,7 +599,7 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         callback()
       })
     },
@@ -590,7 +610,7 @@
 
       fromStartCss[transformName] = 'translate(0, 100%)'
 
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -606,7 +626,7 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         callback()
       })
     },
@@ -617,7 +637,7 @@
 
       fromStartCss[transformName] = 'translate(0, -100%)'
 
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -637,10 +657,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
     },
@@ -659,10 +679,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
     },
@@ -681,10 +701,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
     },
@@ -703,10 +723,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
     },
@@ -725,10 +745,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
     },
@@ -747,10 +767,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
     },
@@ -769,10 +789,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
     },
@@ -791,10 +811,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
     },
@@ -809,7 +829,7 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         callback()
       })
     },
@@ -820,7 +840,7 @@
 
       fromStartCss[transformName] = 'scale(0, 0)'
 
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })
@@ -841,7 +861,7 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         callback()
       })
     },
@@ -854,7 +874,7 @@
 
       fromStartCss[transformName] = 'translate(' + prevPageBodyWidth + 'px, 0)'
 
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         $fromPageBody.css(fromEndCss)
         callback()
@@ -876,7 +896,7 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         callback()
       })      
     },
@@ -889,7 +909,7 @@
 
       fromStartCss[transformName] = 'translate(' + (0 - prevPageBodyWidth) + 'px, 0)'
 
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         $fromPageBody.css(fromEndCss)
         callback()
@@ -911,7 +931,7 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         callback()
       })
     },
@@ -924,7 +944,7 @@
 
       fromStartCss[transformName] = 'translate(0, ' + prevPageBodyHeight + 'px)'
 
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         $fromPageBody.css(fromEndCss)
         callback()
@@ -946,7 +966,7 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         callback()
       })
     },
@@ -959,7 +979,7 @@
 
       fromStartCss[transformName] = 'translate(0, ' + (0 - prevPageBodyHeight) + 'px)'
 
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         $fromPageBody.css(fromEndCss)
         callback()
@@ -980,7 +1000,7 @@
       fromStartCss[transformName] = 'translate(' + (0 - pageBodyWidth) + 'px, 0)'
 
       togglePagezIndex($toPage, $fromPage)
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })      
@@ -994,7 +1014,7 @@
       toStartCss[transformName] = 'translate(0px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toStartCss, function() {
+      $toPageBody.emulateTransition(toStartCss, function() {
         $fromPageBody.css({width: 'auto', left: 0})
         callback()
       })
@@ -1014,7 +1034,7 @@
       fromStartCss[transformName] = 'translate(' + pageBodyWidth + 'px, 0)'
 
       togglePagezIndex($toPage, $fromPage)
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })      
@@ -1028,7 +1048,7 @@
       toStartCss[transformName] = 'translate(0px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toStartCss, function() {
+      $toPageBody.emulateTransition(toStartCss, function() {
         $fromPageBody.css({width: 'auto', right: 0})
         callback()
       })
@@ -1048,7 +1068,7 @@
       fromStartCss[transformName] = 'translate(0, ' + (0 - pageBodyHeight) + 'px)'
 
       togglePagezIndex($toPage, $fromPage)
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })      
@@ -1062,7 +1082,7 @@
       toStartCss[transformName] = 'translate(0, 0px)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toStartCss, function() {
+      $toPageBody.emulateTransition(toStartCss, function() {
         $fromPageBody.css({height: 'auto', top: 0})
         callback()
       })
@@ -1082,7 +1102,7 @@
       fromStartCss[transformName] = 'translate(0, ' + pageBodyHeight + 'px)'
 
       togglePagezIndex($toPage, $fromPage)
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         togglePagezIndex($fromPage, $toPage)
         callback()
       })      
@@ -1096,7 +1116,7 @@
       toStartCss[transformName] = 'translate(0, 0px)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toStartCss, function() {
+      $toPageBody.emulateTransition(toStartCss, function() {
         $fromPageBody.css({height: 'auto', bottom: 0})
         callback()
       })
@@ -1122,10 +1142,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })      
     },
@@ -1142,10 +1162,10 @@
       fromStartCss[transformName] = 'translate(' + prevPageBodyWidth + 'px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toStartCss, function() {
+      $toPageBody.emulateTransition(toStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
         ;(++isFinish == 2) && callback()
       })
@@ -1170,10 +1190,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })      
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })      
     },
@@ -1190,10 +1210,10 @@
       fromStartCss[transformName] = 'translate(' + (0 - prevPageBodyWidth) + 'px, 0)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toStartCss, function() {
+      $toPageBody.emulateTransition(toStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
         ;(++isFinish == 2) && callback()
       })
@@ -1217,10 +1237,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })      
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })      
     },
@@ -1237,10 +1257,10 @@
       fromStartCss[transformName] = 'translate(0, ' + prevPageBodyHeight + 'px)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toStartCss, function() {
+      $toPageBody.emulateTransition(toStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
         ;(++isFinish == 2) && callback()
       })
@@ -1264,10 +1284,10 @@
 
       $toPageBody.css(toStartCss)
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toEndCss, function() {
+      $toPageBody.emulateTransition(toEndCss, function() {
         ;(++isFinish == 2) && callback()
       })      
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         ;(++isFinish == 2) && callback()
       })      
     },
@@ -1284,10 +1304,10 @@
       fromStartCss[transformName] = 'translate(0, ' + (0 - prevPageBodyHeight) + 'px)'
 
       togglePagezIndex($fromPage, $toPage)
-      $toPageBody.transition(toStartCss, function() {
+      $toPageBody.emulateTransition(toStartCss, function() {
         ;(++isFinish == 2) && callback()
       })
-      $fromPageBody.transition(fromStartCss, function() {
+      $fromPageBody.emulateTransition(fromStartCss, function() {
         $fromPageBody.css(fromEndCss)
         ;(++isFinish == 2) && callback()
       })
