@@ -1,5 +1,5 @@
 {
-  "name": "spa",
+  "name": "spa.js",
   "title": "SPA",
   "version": "1.0.7",
   "description": "A webapp framework for routing control and view transitions",
