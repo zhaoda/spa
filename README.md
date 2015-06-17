@@ -1,4 +1,4 @@
-# SPA [![Build Status](https://travis-ci.org/zhaoda/spa.svg?branch=master)](https://travis-ci.org/zhaoda/spa) [![devDependency Status](https://david-dm.org/zhaoda/spa/dev-status.svg)](https://david-dm.org/zhaoda/spa#info=devDependencies) [![Total views](https://sourcegraph.com/api/repos/github.com/zhaoda/spa/counters/views.svg)](https://sourcegraph.com/github.com/zhaoda/spa)
+# SPA [![Build Status](https://travis-ci.org/zhaoda/spa.svg?branch=master)](https://travis-ci.org/zhaoda/spa) [![devDependency Status](https://david-dm.org/zhaoda/spa/dev-status.svg)](https://david-dm.org/zhaoda/spa#info=devDependencies) [![Total views](https://sourcegraph.com/api/repos/github.com/zhaoda/spa/counters/views.svg)](https://sourcegraph.com/github.com/zhaoda/spa) [![NPM version](https://img.shields.io/npm/v/spa.js.svg?style=flat-square)](https://npmjs.org/package/spa.js)
 
 [SPA](http://zhaoda.github.io/spa/docs/) is designed to build a WebApp view transformation and routing control framework.
 
