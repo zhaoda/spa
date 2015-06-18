@@ -47,21 +47,7 @@ var demoTransitPage = {
   }
 }
 
-
 $doc.trigger('spa:route', [pageHome, demoNewPage, demoTransitPage])
-
-// 导航菜单面板
-var panelMenu = {
-  id: 'menu',
-  classname: 'menu',
-  animate: 'overlayInRight',
-  view: function() {
-    var $panel = this
-    requirejs(['menu'], function(menuView) {
-      $doc.trigger('spa:initpanel', [$panel, viewData])
-    })
-  }
-}
 
 // demo:侧边栏菜单
 var demoPanelSidemenu = {
@@ -126,7 +112,7 @@ var demoPanelTransit = {
   }
 }
 
-$doc.trigger('spa:panel', [panelMenu, demoPanelSidemenu, demoPanelAlert, demoPanelConfirm, demoPanelTransit])
+$doc.trigger('spa:panel', [demoPanelSidemenu, demoPanelAlert, demoPanelConfirm, demoPanelTransit])
 
 
 $(function() {
