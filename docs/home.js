@@ -92,7 +92,7 @@ var pageHome = {\n\
   view: function() {\n\
     var $page = this\n\
     requirejs(["home"], function(viewData) {\n\
-      $doc.trigger("spa:initview", [$page, viewData])\n\
+      $doc.trigger("spa:initpage", [$page, viewData])\n\
     })\n\
   }\n\
 }\n\
@@ -141,7 +141,7 @@ var demoNewPage = {\n\
   view: function() {\n\
     var $page = this\n\
     requirejs(["demo.newpage"], function(viewData) {\n\
-      $doc.trigger("spa:initview", [$page, viewData])\n\
+      $doc.trigger("spa:initpage", [$page, viewData])\n\
     })\n\
   }\n\
 }\n\
