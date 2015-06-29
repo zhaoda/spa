@@ -20,7 +20,7 @@ module.exports = function(grunt) {
         src: 'Gruntfile.js'
       },
       build: {
-        src: 'src/<%= pkg.name %>.js'
+        src: 'src/spa.js'
       }
     },
 
@@ -28,8 +28,8 @@ module.exports = function(grunt) {
 
     copy: {
       build: {
-        src: 'src/<%= pkg.name %>.js',
-        dest: 'dist/<%= pkg.name %>.js'
+        src: 'src/spa.js',
+        dest: 'dist/spa.js'
       }
     },
 
@@ -38,8 +38,8 @@ module.exports = function(grunt) {
         banner: '<%= banner %>',
       },
       build: {
-        src: 'dist/<%= pkg.name %>.js',
-        dest: 'dist/<%= pkg.name %>.js'
+        src: 'dist/spa.js',
+        dest: 'dist/spa.js'
       }
     },
 
@@ -48,8 +48,8 @@ module.exports = function(grunt) {
         banner: '<%= banner %>'
       },
       build: {
-        src: 'dist/<%= pkg.name %>.js',
-        dest: 'dist/<%= pkg.name %>.min.js'        
+        src: 'dist/spa.js',
+        dest: 'dist/spa.min.js'        
       }
     }
   })
