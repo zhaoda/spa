@@ -1,7 +1,8 @@
-(function (argument) {
+;(function (argument) {
   'use strict'
 
   var $doc = $(document)
+  var $win = $(window)
 
   // 启动spa
   $.spa.boot = function(options) {
@@ -63,8 +64,14 @@
     $doc.trigger('spa:openloader')
   }
 
+  // 关闭spa loading
   $.spa.closeLoader = function() {
     $doc.trigger('spa:closeloader')
+  }
+
+  // 强制全屏
+  $.spa.fullScreen = function() {
+    $win.trigger('spa:adjustfullscreen')
   }
 
 })(window.Zepto || window.jQuery || window.$)

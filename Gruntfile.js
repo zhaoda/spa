@@ -20,7 +20,10 @@ module.exports = function(grunt) {
         src: 'Gruntfile.js'
       },
       build: {
-        src: 'src/<%= pkg.name %>.js'
+        src: [
+          'src/spa.js',
+          'src/spa-apis.js'
+        ]
       }
     },
 
@@ -28,8 +31,8 @@ module.exports = function(grunt) {
 
     copy: {
       build: {
-        src: 'src/<%= pkg.name %>.js',
-        dest: 'dist/<%= pkg.name %>.js'
+        src: 'src/spa.js',
+        dest: 'dist/spa.js'
       }
     },
 
@@ -37,9 +40,16 @@ module.exports = function(grunt) {
       options: {
         banner: '<%= banner %>',
       },
-      build: {
-        src: 'dist/<%= pkg.name %>.js',
-        dest: 'dist/<%= pkg.name %>.js'
+      buildEvent: {
+        src: 'dist/spa.js',
+        dest: 'dist/spa.js'
+      },
+      buildApis: {
+        src: [
+          'src/spa.js',
+          'src/spa-apis.js'
+        ],
+        dest: 'dist/spa-apis.js'
       }
     },
 
@@ -47,9 +57,13 @@ module.exports = function(grunt) {
       options: {
         banner: '<%= banner %>'
       },
-      build: {
-        src: 'dist/<%= pkg.name %>.js',
-        dest: 'dist/<%= pkg.name %>.min.js'
+      buildEvent: {
+        src: 'dist/spa.js',
+        dest: 'dist/spa.min.js'
+      },
+      buildApis: {
+        src: 'dist/spa-apis.js',
+        dest: 'dist/spa-apis.min.js'
       }
     }
   })
