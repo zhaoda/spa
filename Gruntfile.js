@@ -8,7 +8,7 @@ module.exports = function(grunt) {
               ' * <%= pkg.title %> v<%= pkg.version %>\n' +
               ' * <%= pkg.description %>\n' +
               ' * Copyright <%= grunt.template.today("yyyy") %> <%= pkg.author[0].name %> <<%= pkg.author[0].url %>>\n' +
-              ' * Licensed under <%= pkg.license.type %> <%= pkg.license.url %>\n' +
+              ' * Licensed under <%= pkg.license %>\n' +
               ' */\n\n',
 
     // Task configuration.
