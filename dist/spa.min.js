@@ -1,5 +1,5 @@
 /*!
- * SPA v1.0.7
+ * SPA v2.0.0
  * A webapp framework for routing control and view transitions
  * Copyright 2015 zhaoda <http://zhaoda.net>
  * Licensed under MIT https://raw.github.com/zhaoda/spa/master/LICENSE
