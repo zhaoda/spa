@@ -441,7 +441,7 @@
     requestAnimationFrame(function() {
       $el.get(0).offsetWidth
       properties[transitionName] = '0.4s'
-      $el.css(properties).emulateTransitionEnd(function() {
+      $el.css(properties).emulateTransitionEndBySpa(function() {
         // 过渡动画结束后移除 transition
         properties = {}
         properties[transitionName] = ''
@@ -459,7 +459,7 @@
   }
 
   // transitionEnd 回调
-  $.fn.emulateTransitionEnd = function(callback, duration) {
+  $.fn.emulateTransitionEndBySpa = function(callback, duration) {
     var called = false,
         $el = $(this),
         endtimer
