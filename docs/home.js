@@ -31,9 +31,9 @@ define({
       <iframe src="http://ghbtns.com/github-btn.html?user=zhaoda&type=follow" allowtransparency="true" frameborder="0" scrolling="0" width="132" height="20"></iframe>\
       </p>\
       <p>\
-      <a href="https://travis-ci.org/zhaoda/spa" title="Build Status" target="_blank"><img src="https://travis-ci.org/zhaoda/spa.png?branch=master"/></a>\
-      <a href="https://david-dm.org/zhaoda/spa#info=devDependencies" title="Dependency status" target="_blank"><img src="https://david-dm.org/zhaoda/spa/dev-status.png"/></a>\
-      <a href="https://sourcegraph.com/github.com/zhaoda/spa" title="Total views" target="_blank"><img src="https://sourcegraph.com/api/repos/github.com/zhaoda/spa/counters/views.png"/></a>\
+      <a href="https://travis-ci.org/zhaoda/spa" title="Build Status" target="_blank"><img src="https://img.shields.io/travis/zhaoda/spa.svg"/></a>\
+      <a href="https://david-dm.org/zhaoda/spa#info=devDependencies" title="Dependency status" target="_blank"><img src="https://img.shields.io/david/dev/zhaoda/spa.svg"/></a>\
+      <a href="https://npmjs.org/package/spa.js" title="Total views" target="_blank"><img src="https://img.shields.io/npm/v/spa.js.svg"/></a>\
       </p>\
       <div class="page-header"><h1>为什么使用SPA</h1></div>\
       <h3>提供快速的开发实现</h3>\
