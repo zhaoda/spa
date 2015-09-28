@@ -21,5 +21,5 @@ SPA support mobile client browser and the desktop side modern browsers.
 
 ## License
 
-SPA is available under the terms of the [MIT License](https://github.com/zhaoda/spa/blob/master/LICENSE).
+SPA is available under the terms of the [MIT License](https://github.com/zhaoda/spa/blob/master/LICENSE)
 
