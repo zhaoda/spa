@@ -1752,6 +1752,9 @@
 
         }
 
+        // 设置关闭状态为false，已经打开面板
+        $panel.data('closing', false)
+
         panelData.prevPage = $curPage
         panelOptions.afteropen.call($panel, panelData)
         $curPage = $panel
@@ -1797,6 +1800,12 @@
         panelData = viewsdata[panelId]
 
     options && options.id && ($panel = $('.spa-panel-' + options.id))
+
+    // 判断面板是否在关闭过程中
+    if($panel.data('closing')) {
+      return
+    }
+    $panel.data('closing', true)
 
     // 关闭面板后打开之前的页面
     if($curPage.hasClass('spa-panel') && $curPage.data('id') === panelId) {
@@ -2052,7 +2061,6 @@
         clearTimeout(id)
       }
 })()
-
 ;(function (argument) {
   'use strict'
 
