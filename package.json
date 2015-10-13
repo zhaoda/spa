@@ -1,7 +1,7 @@
 {
   "name": "spa.js",
   "title": "SPA",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "description": "A webapp framework for routing control and view transitions",
   "directories": {
     "doc": "docs"
@@ -49,6 +49,7 @@
     "gulp-uglify": "^1.4.1"
   },
   "scripts": {
-    "test": "grunt"
+    "test": "grunt",
+    "build": "gulp"
   }
 }
