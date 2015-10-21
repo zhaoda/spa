@@ -6,6 +6,7 @@ var concat = require('gulp-concat')
 var header = require('gulp-header')
 var rename = require('gulp-rename')
 var uglify = require('gulp-uglify')
+var replace = require('gulp-replace')
 
 var banner = '/*!\n' +
             ' * ' + pkg.title + ' v' + pkg.version + '\n' +
@@ -28,6 +29,7 @@ gulp.task('clean', function () {
 gulp.task('default', ['lint', 'clean'], function() {
   gulp.src('src/spa.js')
     .pipe(header(banner))
+    .pipe(replace(/\$\.spa\.version = ''/g, '$.spa.version = \'' + pkg.version + '\''))
     .pipe(gulp.dest('dist'))
     .pipe(rename({suffix: '.min'}))
     .pipe(uglify())
@@ -37,6 +39,7 @@ gulp.task('default', ['lint', 'clean'], function() {
   gulp.src(['src/spa.js', 'src/spa-apis.js'])
     .pipe(concat('spa-apis.js'))
     .pipe(header(banner))
+    .pipe(replace(/\$\.spa\.version = ''/g, '$.spa.version = \'' + pkg.version + '\''))
     .pipe(gulp.dest('dist/'))
     .pipe(rename({suffix: '.min'}))
     .pipe(uglify())

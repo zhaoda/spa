@@ -102,8 +102,8 @@
     return $curPage
   }
 
-  // 设置版本号
-  $.spa.version = '2.0.1'
+  // 设置版本号，先留空，打包时会自动添加
+  $.spa.version = ''
 
   /*
    * 插入样式

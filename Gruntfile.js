@@ -36,20 +36,31 @@ module.exports = function(grunt) {
       }
     },
 
+    replace: {
+      version: {
+        src: 'dist/spa.js',
+        dest: 'dist/spa.js',
+        replacements: [{
+          from: '$.spa.version = \'\'',
+          to: '$.spa.version = \'<%= pkg.version %>\''
+        }]
+      }
+    },
+
     concat: {
       options: {
         banner: '<%= banner %>',
       },
-      buildEvent: {
-        src: 'dist/spa.js',
-        dest: 'dist/spa.js'
-      },
-      buildApis: {
+      buildWithApis: {
         src: [
-          'src/spa.js',
+          'dist/spa.js',
           'src/spa-apis.js'
         ],
         dest: 'dist/spa-apis.js'
+      },
+      buildWithoutAPis: {
+        src: 'dist/spa.js',
+        dest: 'dist/spa.js'
       }
     },
 
@@ -74,8 +85,9 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy')
   grunt.loadNpmTasks('grunt-contrib-jshint')
   grunt.loadNpmTasks('grunt-contrib-uglify')
+  grunt.loadNpmTasks('grunt-text-replace')
 
   // Default task.
-  grunt.registerTask('default', ['clean', 'jshint', 'copy', 'concat', 'uglify'])
+  grunt.registerTask('default', ['clean', 'jshint', 'copy', 'replace', 'concat', 'uglify'])
 
 }
