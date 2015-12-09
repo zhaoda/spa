@@ -325,10 +325,6 @@ $doc.trigger("spa:openpanel", [<em>panelid</em>]) //panelid = demoPanelSidemenu,
       <a href="#" class="btn btn-sm btn-info btn-transitpanel" data-animate="pushPartInDown">pushPartInDown</a>\
       <a href="#" class="btn btn-sm btn-default" disabled="disabled">pushPartOutUp</a>\
       </p>\
-      <div class="page-header"><h1>API文档和用例</h1></div>\
-      <p>\
-      <a class="btn btn-lg btn-success" href="https://github.com/zhaoda/spa/wiki" target="_blank">spa wiki</a>\
-      </p>\
       <div class="page-header"><h1>License</h1></div>\
       <p>\
       SPA遵循<a href="https://github.com/zhaoda/spa/blob/master/LICENSE" target="_blank">MIT协议</a>，无论个人还是公司，都可以免费自由使用。\
