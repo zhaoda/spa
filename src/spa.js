@@ -1842,7 +1842,7 @@
 
     // 先缓存
     if($view.hasClass('spa-panel')) {
-      type = 'panle'
+      type = 'panel'
       key = viewId
       panelscache[key] = $view
     } else {
@@ -1888,7 +1888,7 @@
         index
 
     if($view.hasClass('spa-panel')) {
-      type = 'panle'
+      type = 'panel'
       key = viewId
     } else {
       type = 'page'
