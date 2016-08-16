@@ -1657,7 +1657,7 @@
       viewData = panelOptions.view.call($panel, panelData)
 
       if($.isPlainObject(viewData)) {
-        $panel.trigger('spa:initpanel', [$panel, viewData])
+        $doc.trigger('spa:initpanel', [$panel, viewData])
       }
     }
   })

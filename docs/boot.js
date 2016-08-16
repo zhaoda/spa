@@ -47,7 +47,20 @@ var demoTransitPage = {
   }
 }
 
-$doc.trigger('spa:route', [pageHome, demoNewPage, demoTransitPage])
+// demo:404
+var notFoundPage = {
+  route: '*notfound',
+  classname: 'demo-notfound',
+  animate: 'default',
+  view: function() {
+    var $page = this
+    requirejs(['demo.notfound'], function(viewData) {
+      $doc.trigger('spa:initpage', [$page, viewData])
+    })
+  }
+}
+
+$doc.trigger('spa:route', [pageHome, demoNewPage, demoTransitPage, notFoundPage])
 
 // demo:侧边栏菜单
 var demoPanelSidemenu = {
