@@ -1955,7 +1955,7 @@
    */
 
   // 阻塞鼠标和手势操作
-  function preventEventHandle(evnet) {
+  function preventEventHandle(event) {
     event.stopPropagation()
     event.preventDefault()
   }
