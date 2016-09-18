@@ -1,5 +1,5 @@
 /*!
- * SPA v2.0.3
+ * SPA v2.0.4
  * A webapp framework for routing control and view transitions
  * Copyright 2016 zhaoda <http://zhaoda.net>
  * Licensed under MIT
@@ -110,7 +110,7 @@
   }
 
   // 设置版本号，先留空，打包时会自动添加
-  $.spa.version = '2.0.3'
+  $.spa.version = '2.0.4'
 
   /*
    * 插入样式
