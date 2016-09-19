@@ -1833,6 +1833,7 @@
    */
 
   $doc.on('spa:viewcachecount', function(event, options) {
+    options.count = options.count === 1 ? 2 : options.count
     viewcachecount = options.count
   })
 

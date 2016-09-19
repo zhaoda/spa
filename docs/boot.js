@@ -1,12 +1,15 @@
 requirejs.config({
   baseUrl: '',
   // urlArgs: "v=" +  (new Date()).getTime(),
-  urlArgs: 'v=20140320',
+  urlArgs: 'v=20160919',
   paths: {}
 })
 
 
 var $doc = $(document)
+
+// 设置缓存页面数量
+$doc.trigger('spa:viewcachecount', {count: 2})
 
 // 首页
 var pageHome = {
