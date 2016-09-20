@@ -1852,7 +1852,7 @@
       pagescache[key] = $view
     }
 
-    viewscache.unshift(type + ':' + key)
+    viewscache.unshift(type + ':' + encodeURIComponent(key))
 
     // 再清理
     if(viewcachecount !== 0 && viewscache.length > viewcachecount) {
@@ -1865,7 +1865,7 @@
       $.each(cleanup, function(index, value) {
         cleanupsplit = value.split(':', 2)
         cleanuptype = cleanupsplit[0]
-        cleanupkey = cleanupsplit[1]
+        cleanupkey = decodeURIComponent(cleanupsplit[1])
 
         cleanupcache = cleanuptype == 'page' ? pagescache : panelscache
         $('img', cleanupcache[cleanupkey]).remove()
@@ -1896,7 +1896,7 @@
       key = viewsdata[viewId].hash
     }
 
-    name = type + ':' + key
+    name = type + ':' + encodeURIComponent(key)
     index = viewscache.indexOf(name)
 
     if(index !== -1) {

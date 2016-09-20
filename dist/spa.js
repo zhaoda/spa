@@ -1,5 +1,5 @@
 /*!
- * SPA v2.0.4
+ * SPA v2.0.5
  * A webapp framework for routing control and view transitions
  * Copyright 2016 zhaoda <http://zhaoda.net>
  * Licensed under MIT
@@ -110,7 +110,7 @@
   }
 
   // 设置版本号，先留空，打包时会自动添加
-  $.spa.version = '2.0.4'
+  $.spa.version = '2.0.5'
 
   /*
    * 插入样式
@@ -1859,7 +1859,7 @@
       pagescache[key] = $view
     }
 
-    viewscache.unshift(type + ':' + key)
+    viewscache.unshift(type + ':' + encodeURIComponent(key))
 
     // 再清理
     if(viewcachecount !== 0 && viewscache.length > viewcachecount) {
@@ -1872,7 +1872,7 @@
       $.each(cleanup, function(index, value) {
         cleanupsplit = value.split(':', 2)
         cleanuptype = cleanupsplit[0]
-        cleanupkey = cleanupsplit[1]
+        cleanupkey = decodeURIComponent(cleanupsplit[1])
 
         cleanupcache = cleanuptype == 'page' ? pagescache : panelscache
         $('img', cleanupcache[cleanupkey]).remove()
@@ -1903,7 +1903,7 @@
       key = viewsdata[viewId].hash
     }
 
-    name = type + ':' + key
+    name = type + ':' + encodeURIComponent(key)
     index = viewscache.indexOf(name)
 
     if(index !== -1) {
