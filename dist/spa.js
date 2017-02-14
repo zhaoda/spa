@@ -1,7 +1,7 @@
 /*!
  * SPA v2.0.5
  * A webapp framework for routing control and view transitions
- * Copyright 2016 zhaoda <http://zhaoda.net>
+ * Copyright 2017 zhaoda <http://zhaoda.net>
  * Licensed under MIT
  */
 
@@ -1519,13 +1519,13 @@
         route.init.call($page, pageData)
 
         // 打开之前还原spa-scroll-touch
-        if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
+        if($.os.ios) {
           $('.spa-scroll', $page).addClass('spa-scroll-touch')
         }
       }
 
       // 关闭之后清除spa-scroll-touch
-      if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
+      if($.os.ios) {
         $('.spa-scroll', $curPage).removeClass('spa-scroll-touch')
       }
 
@@ -1571,7 +1571,7 @@
     !isBack && (pageData.prevAnimate = animate)
 
     // 打开之前还原spa-scroll-touch
-    if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
+    if($.os.ios) {
       $('.spa-scroll', $page).addClass('spa-scroll-touch')
     }
 
@@ -1740,7 +1740,7 @@
           panelOptions.init.call($panel, panelData)
 
           // 打开之前还原spa-scroll-touch
-          if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
+          if($.os.ios) {
             // 带有-webkit-overflow-scrolling: touch
             // 这个属性，如果去修改z-index，会偶现闪屏现象。
             // 不如一帧以后再添加这个class
@@ -1768,7 +1768,7 @@
       panelData.prevAnimate = animate
 
       // 打开之前还原spa-scroll-touch
-      if($.os.ios && parseInt($.os.version.slice(0, 1)) > 5) {
+      if($.os.ios) {
         $('.spa-scroll', $panel).addClass('spa-scroll-touch')
       }
 
